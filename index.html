@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="description" content="Septic Scope compares how Jacksonville ranks septic-to-sewer projects today with a proposal that keeps climate risk and hardship separate. Includes the city matrix, a formula builder and a county data lab.">
+<meta name="septic-api" content="">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Septic Scope: Research Lab and Official City Records</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -291,7 +293,8 @@ footer .brand{font-size:1.4rem}
 .tk-ctl{flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;border-left:1px solid var(--p-line)}
 .tk-ctl button,.tk-ctl a{font:700 .85rem var(--d2);color:var(--p-ink);background:none;border:1px solid var(--p-line);padding:5px 11px;min-height:36px;display:inline-flex;align-items:center;cursor:pointer;text-decoration:none}
 .tk-ctl button:hover,.tk-ctl a:hover{border-color:var(--p-ink)}
-.ticker:hover .tk-belt,.ticker:focus-within .tk-belt,.ticker.paused .tk-belt{animation-play-state:paused}
+.tk-view:hover .tk-belt,.tk-view:focus-within .tk-belt,.ticker.paused .tk-belt{animation-play-state:paused}
+a.tk-i{color:inherit;text-decoration:none}a.tk-i:hover,a.tk-i:focus-visible{text-decoration:underline}
 .fpills{display:flex;gap:8px;flex-wrap:wrap}
 .fpill{font:700 .92rem var(--d2);color:var(--ink);background:transparent;border:2px solid var(--ink);padding:8px 15px;min-height:44px;cursor:pointer}
 .fpill:hover{background:var(--ink);color:var(--paper)}
@@ -314,7 +317,7 @@ footer .brand{font-size:1.4rem}
 .fs a{color:var(--muted)}
 @media (max-width:700px){.fi{grid-template-columns:1fr;gap:6px}}
 @media (max-width:520px){.tk-more{display:none}.tk-label{padding:0 12px}}
-@media (prefers-reduced-motion: reduce){.tk-view{overflow-x:auto}.tk-ctl button{display:none}}
+@media (prefers-reduced-motion: reduce){.tk-view{overflow-x:auto}.tk-ctl button{display:none}.tk-set[aria-hidden]{display:none}}
 
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .badge{display:inline-block;font:800 .85rem/1 var(--d1);text-transform:uppercase;letter-spacing:.07em;padding:6px 10px;margin:0 6px 12px 0;vertical-align:middle}
@@ -493,7 +496,7 @@ td.rk{font:900 1.5rem/1 var(--d1);color:var(--a)}
 <div class="ticker plate" role="region" aria-label="City Council and funding updates">
   <div class="tk-label">Latest</div>
   <div class="tk-view"><div class="tk-belt" id="tkBelt"></div></div>
-  <div class="tk-ctl"><button type="button" id="tkPause" aria-pressed="false">Pause</button><a class="tk-more" href="#updates">All updates</a></div>
+  <div class="tk-ctl"><button type="button" id="tkPause" aria-label="Pause the updates ticker">Pause</button><a class="tk-more" href="#updates">All updates</a></div>
 </div>
 
 <main>
@@ -717,9 +720,21 @@ td.rk{font:900 1.5rem/1 var(--d1);color:var(--a)}
       <h2 id="h-lab">County lab</h2>
       <p>Bring data from any county and run it through the Septic Scope framework. Paste a spreadsheet, upload a CSV, or start from the template. Leave out a column and its weight drops to zero, so you can use only the data you have. Everything runs in your browser, and nothing is sent anywhere.</p>
     </div>
+    <div id="labOut" hidden>
+      <h3 class="lab-h">Results</h3>
+      <p class="lab-sum" id="labSum"></p>
+      <div class="lab-res">
+        <div class="lab-plot frame"><svg id="labPlot" viewBox="0 0 520 520" role="img" aria-label="Scatter plot of your areas by climate risk and hardship score"></svg>
+          <p class="small muted">Right means more climate risk and up means more hardship. The yellow corner is urgent on both counts. Hover a dot for its name.</p></div>
+        <div class="lab-tab"><div class="tablewrap"><table id="labTable"><thead id="labHead"></thead><tbody id="labBody"></tbody></table></div></div>
+      </div>
+      <h3 class="lab-h">Copy the results</h3>
+      <textarea id="labExport" rows="6" readonly spellcheck="false"></textarea>
+      <div class="lab-actions"><button class="btn" type="button" id="labCopy">Copy results</button><span id="labCopied" class="small muted" role="status"></span></div>
+    </div>
     <div class="lab-grid">
       <div class="lab-in frame">
-        <h3>1. Add your data</h3>
+        <h3>Your data</h3>
         <p class="small muted">One row per neighborhood. Only the name and the property count are required.</p>
         <div class="lab-actions">
           <label class="btn filebtn" for="labFile">Upload CSV</label><input type="file" id="labFile" accept=".csv,.tsv,.txt,text/csv" class="visually-hidden">
@@ -745,7 +760,7 @@ td.rk{font:900 1.5rem/1 var(--d1);color:var(--a)}
             </fieldset>
           </div>
         </details>
-        <div class="lab-actions"><button class="btn lab-run" type="button" id="labRun">Run the framework</button><button class="btn" type="button" id="labDuval">Self-test with Duval</button></div>
+        <div class="lab-actions"><button class="btn lab-run" type="button" id="labRun">Run the framework</button><button class="btn" type="button" id="labDuval">Run the two-row example</button></div>
         <ul class="labmsg" id="labMsg" role="status" aria-live="polite"></ul>
       </div>
       <div class="lab-cols frame">
@@ -783,18 +798,6 @@ td.rk{font:900 1.5rem/1 var(--d1);color:var(--a)}
 <div><dt>Social vulnerability index</dt><dd>A federal CDC score from 0 to 1 that combines income, housing, age, language and other factors. Higher means more vulnerable.</dd></div>
 <div><dt>Double vulnerability zone</dt><dd>A neighborhood in the top eight on both the climate risk list and the hardship list. It is funded first.</dd></div>
 <div><dt>Benefit score (CIS)</dt><dd>Short for Composite Impact Score. It measures how much good a project does: properties and people served, failures fixed, cost per person and share of vulnerable residents.</dd></div></dl></div>
-    <div id="labOut" hidden>
-      <h3 class="lab-h">2. Results</h3>
-      <p class="lab-sum" id="labSum"></p>
-      <div class="lab-res">
-        <div class="lab-plot frame"><svg id="labPlot" viewBox="0 0 520 520" role="img" aria-label="Scatter plot of your areas by climate risk and hardship score"></svg>
-          <p class="small muted">Right means more climate risk and up means more hardship. The yellow corner is urgent on both counts. Hover a dot for its name.</p></div>
-        <div class="lab-tab"><div class="tablewrap"><table id="labTable"><thead id="labHead"></thead><tbody id="labBody"></tbody></table></div></div>
-      </div>
-      <h3 class="lab-h">3. Copy the results</h3>
-      <textarea id="labExport" rows="6" readonly spellcheck="false"></textarea>
-      <div class="lab-actions"><button class="btn" type="button" id="labCopy">Copy results</button><span id="labCopied" class="small muted" role="status"></span></div>
-    </div>
   </div>
 </section>
 
@@ -819,11 +822,7 @@ td.rk{font:900 1.5rem/1 var(--d1);color:var(--a)}
         <h3>Where the Septic Scope framework came from</h3>
         <p>Septic Scope is built on a policy brief proposing an amendment to Chapter 751 of the Jacksonville Code of Ordinances, which governs the Septic Tank Phase-Out program. The framework was developed by a Duval County student, reviewed with a University of North Florida dean, and presented to the Jacksonville Environmental Protection Board.</p>
       </div>
-      <div class="panel frame">
-        <h3>What is estimated</h3>
-        <p><strong>Official, from the city's June 2026 matrix:</strong> property counts, city rank and score, the Duval County Health Department site score, properties within 150 m of water, and the standard sewer cost of $71,618 per property. <strong>Still estimated:</strong> the climate and hardship metrics behind each dot (flood zone, social vulnerability, health burden), household size, share of vulnerable residents, and which neighborhoods count as waterfront. Replace those with official data before anyone relies on the double vulnerability results.</p>
-      </div>
-      <div class="panel frame">
+      <div class="panel frame" style="grid-column:1/-1">
         <h3>How the Septic Scope lists work</h3>
         <ul>
           <li>A neighborhood is a double vulnerability zone when it ranks in the top eight on both the climate and equity scores. It goes first.</li>
@@ -852,7 +851,7 @@ td.rk{font:900 1.5rem/1 var(--d1);color:var(--a)}
       </div>
       <div class="frame rise" style="--i:2;padding:20px 22px">
         <span class="chip dv" id="g-chip">Connecting to weather feed</span>
-        <h3 style="margin-top:10px;font-size:1.9rem;text-transform:uppercase">Drainfield and septic backup risk</h3>
+        <h3 style="margin-top:10px;font-size:1.9rem;text-transform:uppercase">Rain, soil and backup risk screen</h3>
         <dl class="gauges">
           <div><dt>72-hour rainfall</dt><dd><b id="g-rain">&mdash;</b><span id="g-rain-n">Waiting for feed</span></dd></div>
           <div><dt>Soil moisture, top 7 cm</dt><dd><b id="g-soil">&mdash;</b><span id="g-soil-n">Waiting for feed</span></dd></div>
@@ -911,7 +910,7 @@ td.rk{font:900 1.5rem/1 var(--d1);color:var(--a)}
         <p class="small muted" id="cnote"></p>
         <p class="small muted">The city counts legal property owners. This register uses the property count as a stand-in.</p>
         <form id="cform">
-          <div class="field"><label for="rn">Resident full name</label><input type="text" id="rn" required autocomplete="name"></div>
+          <div class="field"><label for="rn">Your name (optional)</label><input type="text" id="rn" autocomplete="name"></div>
           <div class="field"><label for="ra">Property address</label><input type="text" id="ra" required autocomplete="street-address"></div>
           <div class="field"><label style="display:flex;gap:10px;align-items:flex-start;font-weight:400"><input type="checkbox" id="rc" required>I own this property and I support connecting it to the sewer.</label></div>
           <button class="btn solid" type="submit">Submit sign-up</button>
@@ -941,7 +940,6 @@ td.rk{font:900 1.5rem/1 var(--d1);color:var(--a)}
       <button type="button" class="fpill" data-f="jea">JEA funding</button>
       <button type="button" class="fpill" data-f="hearing">Hearings and meetings</button>
       <button type="button" class="fpill" data-f="milestone">70% sign-ups</button>
-      <button type="button" class="fpill" data-f="data">Data releases</button>
     </div>
     <ol class="feed" id="feed" aria-live="polite"></ol>
   </div>
@@ -1312,7 +1310,6 @@ const TYPES={budget:"City funding",jea:"JEA funding",hearing:"Hearing or meeting
 const FEED=[
  {t:"jea",h:"JEA Board approved $12M capital reallocation for priority septic zones",sample:1},
  {t:"hearing",h:"City Council hearing scheduled for Duval District 4",sample:1},
- {d:"2026-06-23",t:"data",h:"City publishes its June 2026 septic tank prioritization matrix",x:"It ranks 35 areas and puts the estimated total sewer cost at $1.62 billion.",s:"City matrix, printed June 23, 2026"},
  {d:"2025-11-10",t:"milestone",h:"Riverview passes the 70% owner approval requirement",x:"The largest project to date moves into the design phase.",s:"JEA program page",u:"https://www.jea.com/In_Our_Community/Construction_Projects/Septic_Tank_Phase_Out"},
  {d:"2024-12",t:"budget",h:"Rising costs leave the program about $80 million short",x:"Reports at the time tied the shortfall to higher construction costs in the current project cycle.",s:"News coverage, December 2024"},
  {d:"2024-08-08",t:"hearing",h:"Second Riverview public kick-off meeting",x:"Hosted by Council Members Reggie Gaffney Jr. and Ju'Coby Pittman, the city and JEA. A first meeting was held February 15, 2024.",s:"JEA Riverview page",u:"https://www.jea.com/riverview"},
@@ -1337,14 +1334,20 @@ function renderFeed(){
 }
 function renderTicker(){
   const items=FEED.filter(f=>!f.sample).slice(0,6);
-  const set=items.map(f=>`<span class="tk-i"><b class="tk-t">${f.sample?"Sample":fdate(f.d)}</b>${esc(f.h)}</span>`).join("");
-  const belt=$("tkBelt");
-  belt.innerHTML=`<span class="tk-set">${set}</span><span class="tk-set" aria-hidden="true">${set}</span>`;
-  belt.style.animationDuration=Math.max(40,Math.round(belt.scrollWidth/2/55))+"s";
+  const belt=$("tkBelt"),view=belt.parentElement;
+  const one=items.map(f=>`<a class="tk-i" href="#updates"><b class="tk-t">${fdate(f.d)}</b>${esc(f.h)}</a>`).join("");
+  const build=k=>{const g=`<span class="tk-set">${one.repeat(k)}</span>`;belt.innerHTML=g+g.replace('class="tk-set"','class="tk-set" aria-hidden="true"').replace(/<a /g,'<a tabindex="-1" ');};
+  build(1);
+  const w=belt.firstChild.getBoundingClientRect().width,vw=view.clientWidth;
+  if(w>0&&vw>w) build(Math.ceil(vw/w));
+  const half=belt.scrollWidth/2;
+  belt.style.animationDuration=Math.max(20,Math.round((half||1200)/55))+"s";
 }
 document.querySelectorAll(".fpill").forEach(b=>b.addEventListener("click",()=>{FF=b.dataset.f;renderFeed();}));
-$("tkPause").addEventListener("click",e=>{const t=document.querySelector(".ticker"),on=t.classList.toggle("paused");e.target.setAttribute("aria-pressed",String(on));e.target.textContent=on?"Play":"Pause";});
+$("tkPause").addEventListener("click",e=>{const b=e.currentTarget,on=document.querySelector(".ticker").classList.toggle("paused");b.textContent=on?"Play":"Pause";b.setAttribute("aria-label",on?"Play the updates ticker":"Pause the updates ticker");});
 renderFeed();renderTicker();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(renderTicker);
+let tkT;window.addEventListener("resize",()=>{clearTimeout(tkT);tkT=setTimeout(renderTicker,200);});
 
 window.__tw={D,S,compute,get seq(){return SEQ;},get dv(){return DVN;}};
 })();
@@ -1434,6 +1437,14 @@ function consent(){
   $("cnote").textContent=met?"Threshold met.":`${fmt(d.count)} signed up. ${fmt(Math.max(0,need-d.count))} more needed to reach 70%.`;
 }
 $("area").addEventListener("change",consent);
+const _m=((document.querySelector('meta[name="septic-api"]')||{}).content||"").trim();
+const API=_m==="/"?location.origin:_m.replace(/\/$/,"");
+async function apiLoad(){
+  const r=await fetch(API+"/api/signups");if(!r.ok) throw 0;
+  const j=await r.json();
+  AREAS.forEach(d=>{d.count=(j.counts||{})[d.id]||0;d.pct=Math.round(d.count/d.parcels*1000)/10;});
+  opts($("area").value);matrix();
+}
 let DB=null,UID=null,MODE="demo";
 const hash=async t=>{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].slice(0,10).map(x=>x.toString(16).padStart(2,"0")).join("");};
 function mode(m,msg){MODE=m;$("cmode").textContent=msg;$("cform").querySelectorAll("input,button").forEach(x=>x.disabled=(m==="locked"));}
@@ -1441,6 +1452,17 @@ $("cform").addEventListener("submit",async e=>{
   e.preventDefault();
   const d=AREAS.find(x=>x.id===$("area").value); if(!d) return;
   const n=$("rn").value.trim(),a=$("ra").value.trim(),st=$("cs");
+  if(MODE==="server"){
+    try{
+      const r=await fetch(API+"/api/signups",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({area:d.id,address:a,owner:true})});
+      if(r.status===409){st.textContent=`That address is already signed up for ${d.name}. Each property counts once.`;return;}
+      if(r.status===429){st.textContent="Too many sign-ups from this connection. Please try again later.";return;}
+      if(!r.ok) throw 0;
+      st.textContent=`Saved. Your sign-up for ${d.name} is counted. Your name and address were not stored.`;
+      $("cform").reset();await apiLoad();
+    }catch(err){st.textContent="Could not reach the sign-up server. Please try again.";}
+    return;
+  }
   if(MODE==="db"){
     try{
       const key=d.id+"__"+await hash(a.toLowerCase().replace(/[^a-z0-9]/g,""));
@@ -1458,6 +1480,11 @@ $("cform").addEventListener("submit",async e=>{
   $("cform").reset();
 });
 (async()=>{
+  if(API){
+    try{await apiLoad();mode("server","Sign-ups are saved on the project server. Your name and address are not stored, only a one-way fingerprint of the address so each property counts once.");setInterval(()=>apiLoad().catch(()=>{}),60000);}
+    catch(e){mode("demo","The sign-up server could not be reached, so nothing will be saved right now.");}
+    return;
+  }
   try{
     if(typeof claude==="undefined") throw 0;
     DB=await claude.use("db");const u=await claude.use("user");
@@ -1471,7 +1498,7 @@ $("cform").addEventListener("submit",async e=>{
       AREAS.forEach(d=>{d.count=m[d.id]||0;d.pct=Math.round(d.count/d.parcels*1000)/10;});
       opts($("area").value);matrix();
     },()=>{});
-  }catch(e){mode("demo","Demo only. The shared database is not available in this view, so nothing is saved.");}
+  }catch(e){mode("demo","Demo only. No database is connected to this site yet, so nothing is saved and the count resets when you reload.");}
 })();
 
 /* septic diagram */
@@ -1566,7 +1593,7 @@ function parseCSV(text){
     res.push(cur.trim());
     return res.map(s=>s.replace(/^"|"$/g,""));
   };
-  const headers=parseRow(lines[0]);
+  const headers=parseRow(lines[0]).map(h=>h.replace(/^\uFEFF/,"").trim().toLowerCase().replace(/[\s-]+/g,"_"));
   const rows=[];
   for(let i=1;i<lines.length;i++){
     if(!lines[i].trim()) continue;
@@ -1578,38 +1605,46 @@ function parseCSV(text){
   return rows;
 }
 
-function msg(text,type="ok"){
-  $("labMsg").innerHTML=`<li class="${type}">${esc(text)}</li>`;
+function msg(text,type="ok",more=[]){
+  $("labMsg").innerHTML=[[text,type],...more].map(([t,y])=>`<li class="${y}">${esc(t)}</li>`).join("");
 }
 
-$("labTemplate").addEventListener("click",()=>{
-  $("labText").value=TEMPLATE_CSV;
-  msg("Loaded template structure.");
-});
-$("labDemo").addEventListener("click",()=>{
-  $("labText").value=DEMO_CSV;
-  msg("Loaded demo county dataset.");
-});
+let SRC="Demo county (made-up data)";
+function load(text,src){$("labText").value=text;SRC=src;runLab(true);}
+$("labTemplate").addEventListener("click",()=>{$("labText").value=TEMPLATE_CSV;SRC="Your data";msg("Template loaded below. Replace the example rows with yours, then press Run the framework.");});
+$("labDemo").addEventListener("click",()=>load(DEMO_CSV,"Demo county (made-up data)"));
 $("labFile").addEventListener("change",e=>{
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
-  r.onload=ev=>{
-    $("labText").value=ev.target.result;
-    msg(`Loaded file: ${f.name}`);
-  };
+  r.onerror=()=>{$("labOut").hidden=true;msg("That file could not be read.","err");};
+  r.onload=ev=>{load(String(ev.target.result),f.name);e.target.value="";};
   r.readAsText(f);
 });
+$("labText").addEventListener("input",()=>{SRC="Pasted data";});
 
 function eff(ws){const s=ws.reduce((x,y)=>x+y,0)||1;return ws.map(x=>x/s);}
 
-function runLab(){
+function runLab(scroll){
   try{
     const raw=parseCSV($("labText").value);
     if(!raw.length) throw new Error("No valid rows found in data.");
+    const WARN=[],heads=Object.keys(raw[0]),has=(...k)=>k.some(x=>heads.includes(x));
+    if(!has("properties","parcels")) throw new Error("Add a column named properties (or parcels). It is required.");
+    const presA=[has("floodplain_pct","floodplain"),has("wave_pct","wave_hazard"),has("elevation_ft","elevation"),has("flood_factor","fsf"),has("river_km","river_distance")];
+    const presB=[has("svi"),has("qct_pct","qct"),has("poverty_pct","poverty"),has("health_pct","health")];
+    const presC=[true,has("household_size"),has("failing_score","failures"),has("cost_per_property"),has("vulnerable_pct")];
+    const miss=[...LAB_AK.filter((_,i)=>!presA[i]),...LAB_BK.filter((_,i)=>!presB[i]),...LAB_CK.filter((_,i)=>!presC[i])].map(k=>k[0]);
+    if(miss.length) WARN.push("Columns not found, so their weights were set to zero: "+miss.join(", ")+".");
+    if(!presA.some(Boolean)) WARN.push("No climate columns found, so every area scores 0 on climate risk and the lists are not meaningful. Add at least one climate column.");
+    if(!presB.some(Boolean)) WARN.push("No hardship columns found, so every area scores 0 on hardship and the lists are not meaningful. Add at least one hardship column.");
+    if(!has("name","neighborhood")) WARN.push("No name column found, so areas are numbered.");
+    if(!has("cost_per_property")) WARN.push("No cost_per_property column, so the city standard of $71,618 per property was used for cost and timing.");
+    let bad=0;[["properties","parcels"],["floodplain_pct","floodplain"],["wave_pct","wave_hazard"],["elevation_ft","elevation"],["flood_factor","fsf"],["river_km","river_distance"],["svi"],["qct_pct","qct"],["poverty_pct","poverty"],["health_pct","health"],["household_size"],["failing_score","failures"],["cost_per_property"],["vulnerable_pct"]].forEach(g=>{const k=g.find(x=>heads.includes(x));if(k) raw.forEach(r=>{if(!isFinite(parseFloat(r[k]))) bad++;});});
+    if(bad) WARN.push(bad+" blank or non-numeric value"+(bad>1?"s were":" was")+" replaced with a neutral default. Check those rows.");
     
-    const wA=eff(LAB_AK.map((_,i)=>+($("lwa_"+i).value||0)));
-    const wB=eff(LAB_BK.map((_,i)=>+($("lwb_"+i).value||0)));
-    const wC=eff(LAB_CK.map((_,i)=>+($("lwc_"+i).value||0)));
+    const wA=eff(LAB_AK.map((_,i)=>presA[i]?+($("lwa_"+i).value||0):0));
+    const wB=eff(LAB_BK.map((_,i)=>presB[i]?+($("lwb_"+i).value||0):0));
+    const wC=eff(LAB_CK.map((_,i)=>presC[i]?+($("lwc_"+i).value||0):0));
     
     const waveMax=+($("labWave").value||25);
     const riverZero=+($("labRiver").value||5);
@@ -1691,7 +1726,7 @@ function runLab(){
     seq.forEach((n,i)=>{n.pos=i+1;cum+=n.cost;n.cum=cum;n.year=Math.max(1,Math.ceil(cum/budget-1e-9));});
 
     $("labOut").hidden=false;
-    $("labSum").textContent=`Successfully analyzed ${parsed.length} areas. ${dv.length} identified as double-vulnerability zones. Total estimated program cost: $${cum.toFixed(2)}M.`;
+    $("labSum").textContent=`${SRC}: ${parsed.length} areas analyzed. ${dv.length} identified as double-vulnerability zones. Total estimated program cost: $${cum.toFixed(2)}M.`;
 
     $("labHead").innerHTML=`<tr><th class="num">Order</th><th>Area</th><th>List</th><th class="num">Properties</th><th class="num">Climate</th><th class="num">Hardship</th><th class="num">Benefit (CIS)</th><th class="num">Finished</th></tr>`;
     $("labBody").innerHTML=seq.map(n=>`<tr><td class="num">${n.pos}</td><td><b>${esc(n.name)}</b></td><td>${n.track==="dv"?"Double Vulnerability":n.track==="a"?"Climate Risk":"Hardship"}</td><td class="num">${fmt(n.properties)}</td><td class="num">${Math.round(n.A)}</td><td class="num">${Math.round(n.B)}</td><td class="num">${Math.round(n.cis)}</td><td class="num">Year ${n.year}</td></tr>`).join("");
@@ -1723,23 +1758,22 @@ function runLab(){
       ...seq.map(n=>`${n.pos},"${n.name}",${n.track},${n.properties},${Math.round(n.A)},${Math.round(n.B)},${Math.round(n.cis)},${n.year}`)
     ].join("\n");
     $("labExport").value=csvExport;
-    msg("Framework executed successfully. Results generated below.");
+    msg(`${parsed.length} areas analyzed from ${SRC}.`,"ok",WARN.map(t=>[t,"warn"]));
+    if(scroll) $("labOut").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(err){
-    msg("Error processing data: "+err.message,"err");
+    $("labOut").hidden=true;msg("Error processing data: "+err.message,"err");
   }
 }
 
-$("labRun").addEventListener("click",runLab);
-$("labDuval").addEventListener("click",()=>{
-  $("labText").value=TEMPLATE_CSV;
-  runLab();
-  msg("Loaded and ran Duval County benchmark test.");
-});
-$("labCopy").addEventListener("click",()=>{
-  navigator.clipboard.writeText($("labExport").value);
-  $("labCopied").textContent="Copied to clipboard!";
+$("labRun").addEventListener("click",()=>runLab(true));
+$("labDuval").addEventListener("click",()=>load(TEMPLATE_CSV,"Two-row example"));
+$("labCopy").addEventListener("click",async()=>{
+  const t=$("labExport");let ok=true;
+  try{await navigator.clipboard.writeText(t.value);}catch(e){try{t.select();ok=document.execCommand("copy");}catch(e2){ok=false;}}
+  $("labCopied").textContent=ok?"Copied to clipboard!":"Select the text above and copy it.";
   setTimeout(()=>$("labCopied").textContent="",2500);
 });
+$("labText").value=DEMO_CSV;runLab(false);
 })();
 </script>
 
