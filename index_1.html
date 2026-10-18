@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="Septic Scope compares how Jacksonville ranks septic-to-sewer projects today with a proposal that keeps climate risk and hardship separate. Includes the city matrix, a formula builder and a county data lab.">
+<meta name="septic-api" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Septic Scope: Research Lab and Official City Records</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Big+Shoulders+Display:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --paper:#F1F5FA; --surface:#FFFFFF; --ink:#0A2A5E; --muted:#3F5578; --rule:#AFC0D8;
+  --a:#0A6FA8; --on-a:#FFFFFF; --b:#B3175A; --on-b:#FFFFFF; --dv:#FFD60A; --on-dv:#1A1500; --dv-line:#C99700;
+  --track:rgba(10,42,94,.12); --hover:rgba(10,42,94,.06); --band:rgba(255,214,10,.34);
+  --grid-minor:rgba(10,42,94,.055); --grid-major:rgba(10,42,94,.11); --focus:#0B57D0;
+  --plate:#0B2B63; --plate-deep:#071F4B; --p-ink:#EAF4FF; --p-muted:#A8C3E8;
+  --p-line:rgba(190,225,255,.26); --p-a:#7FE0FF; --p-b:#FF7DB8; --p-dv:#FFD60A;
+  --d1:"Big Shoulders Display","Barlow Condensed","Arial Narrow","Liberation Sans Narrow",sans-serif;
+  --d2:"Atkinson Hyperlegible","Trebuchet MS","DejaVu Sans",Verdana,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#061A3D; --surface:#0A2452; --ink:#E8F2FF; --muted:#9DB8DF; --rule:#25498A;
+    --a:#7FE0FF; --on-a:#00243D; --b:#FF7DB8; --on-b:#3A0A24; --dv-line:#FFD60A;
+    --track:rgba(190,225,255,.16); --hover:rgba(170,210,255,.08); --band:rgba(255,214,10,.14);
+    --grid-minor:rgba(170,210,255,.05); --grid-major:rgba(170,210,255,.1); --focus:#9CC4FF;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#061A3D; --surface:#0A2452; --ink:#E8F2FF; --muted:#9DB8DF; --rule:#25498A;
+  --a:#7FE0FF; --on-a:#00243D; --b:#FF7DB8; --on-b:#3A0A24; --dv-line:#FFD60A;
+  --track:rgba(190,225,255,.16); --hover:rgba(170,210,255,.08); --band:rgba(255,214,10,.14);
+  --grid-minor:rgba(170,210,255,.05); --grid-major:rgba(170,210,255,.1); --focus:#9CC4FF;
+}
+.plate{
+  --ink:var(--p-ink); --muted:var(--p-muted); --rule:var(--p-line);
+  --a:var(--p-a); --on-a:#00243D; --b:var(--p-b); --on-b:#3A0A24;
+  --surface:rgba(7,31,75,.55); --dv-line:#FFD60A; --track:rgba(190,225,255,.18); --hover:rgba(190,225,255,.08);
+  --focus:#FFD60A; color:var(--p-ink);
+}
+.plate-bg{
+  background:
+    radial-gradient(900px 560px at 80% 30%,rgba(70,140,235,.38),transparent 62%),
+    radial-gradient(700px 400px at 0% 100%,rgba(0,8,30,.55),transparent 60%),
+    linear-gradient(rgba(190,225,255,.15) 1px,transparent 1px) 0 0/120px 120px,
+    linear-gradient(90deg,rgba(190,225,255,.15) 1px,transparent 1px) 0 0/120px 120px,
+    linear-gradient(rgba(190,225,255,.06) 1px,transparent 1px) 0 0/24px 24px,
+    linear-gradient(90deg,rgba(190,225,255,.06) 1px,transparent 1px) 0 0/24px 24px,
+    var(--plate);
+}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 12px);scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0;color:var(--ink);font:400 1.06rem/1.62 var(--d2);-webkit-text-size-adjust:100%;counter-reset:sheet 1;
+  background:
+    linear-gradient(var(--grid-major) 1px,transparent 1px) 0 0/120px 120px,
+    linear-gradient(90deg,var(--grid-major) 1px,transparent 1px) 0 0/120px 120px,
+    linear-gradient(var(--grid-minor) 1px,transparent 1px) 0 0/24px 24px,
+    linear-gradient(90deg,var(--grid-minor) 1px,transparent 1px) 0 0/24px 24px,
+    var(--paper);
+}
+h1,h2,h3{font-family:var(--d1);margin:0;letter-spacing:.005em}
+h1{font-weight:900;text-transform:uppercase;font-size:clamp(3.4rem,8.4vw,7.2rem);line-height:.86}
+h2{font-weight:800;text-transform:uppercase;font-size:clamp(2.3rem,4.8vw,3.8rem);line-height:.92}
+h3{font-weight:800;font-size:1.5rem;line-height:1.05}
+p{margin:0}
+a{color:inherit;text-decoration-thickness:2px;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+.muted{color:var(--muted)}.small{font-size:.9rem}
+
+@keyframes rise{from{opacity:0;transform:translateY(22px)}}
+@keyframes lineup{from{transform:translateY(108%)}}
+@keyframes pop{from{opacity:0;transform:scale(.1)}}
+@keyframes draw{from{stroke-dashoffset:620}}
+@keyframes scan{from{transform:translateX(0);opacity:.95}to{transform:translateX(478px);opacity:0}}
+@keyframes grow{from{transform:scaleY(0)}}
+.rise{animation:rise .8s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i,0)*95ms + 200ms)}
+.ln{display:block;overflow:hidden;padding-bottom:.07em}
+.ln>span{display:inline-block;animation:lineup .85s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i,0)*120ms + 120ms)}
+
+.chip{display:inline-block;font:700 .78rem/1.55 var(--d2);padding:0 15px 0 9px;width:max-content;
+  clip-path:polygon(0 0,calc(100% - 7px) 0,100% 50%,calc(100% - 7px) 100%,0 100%)}
+.chip.a{background:var(--a);color:var(--on-a)}
+.chip.b{background:var(--b);color:var(--on-b)}
+.chip.dv{background:var(--dv);color:var(--on-dv)}
+.bar{display:flex;height:12px;background:var(--track);overflow:hidden}
+.bar i{display:block;height:100%}
+.bar .ba{background:var(--a)}.bar .bb{background:var(--b)}
+.btn,.pre{font:700 .95rem var(--d2);color:var(--ink);background:transparent;border:2px solid var(--ink);padding:8px 16px;min-height:44px;cursor:pointer}
+.btn:hover,.pre:hover{background:var(--ink);color:var(--paper)}
+.plate .btn:hover,.plate .pre:hover{color:var(--plate-deep)}
+.pre[aria-pressed="true"]{background:var(--p-dv);border-color:var(--p-dv);color:#1A1500}
+.frame{position:relative;border:1px solid var(--rule);background:var(--surface)}
+.frame::before,.frame::after{content:"";position:absolute;width:18px;height:18px;pointer-events:none}
+.frame::before{top:-2px;left:-2px;border-top:4px solid var(--ink);border-left:4px solid var(--ink)}
+.frame::after{bottom:-2px;right:-2px;border-bottom:4px solid var(--ink);border-right:4px solid var(--ink)}
+
+.bar-top{border-bottom:1px solid var(--p-line)}
+.bar-top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px;font:900 1.65rem/1 var(--d1);text-transform:uppercase;letter-spacing:.03em;text-decoration:none;color:var(--p-ink)}
+.brand svg{display:block}
+.bar-top nav{display:flex;gap:0 22px;flex-wrap:wrap}
+.bar-top nav a{text-decoration:none;font-weight:700;font-size:.98rem;padding:6px 0;border-bottom:3px solid transparent}
+.bar-top nav a:hover{border-bottom-color:var(--p-dv)}
+.notice{background:var(--p-dv);color:#1A1500;font-size:.9rem;font-weight:700}
+.notice .wrap{padding-top:7px;padding-bottom:7px}
+
+.hero{position:relative;padding:54px 0 76px}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:12px;background:repeating-linear-gradient(-45deg,#FFD60A 0 15px,#0A0F1F 15px 30px)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:48px;align-items:start}
+.lede{font-size:1.14rem;margin-top:20px;max-width:44ch}
+.facts{display:flex;gap:30px;margin:24px 0 0;padding:0;flex-wrap:wrap}
+.facts div{display:flex;flex-direction:column-reverse}
+.facts dt{font-size:.9rem;color:var(--muted)}
+.facts dd{margin:0;font:900 3.3rem/.95 var(--d1)}
+.tug{margin-top:28px;padding:20px 20px 16px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tug label{display:block;font-weight:700;margin-bottom:12px;line-height:1.3}
+.ends{display:flex;justify-content:space-between;font:800 1.25rem/1 var(--d1);text-transform:uppercase;margin-bottom:10px}
+.ends .e{color:var(--b)}.ends .c{color:var(--a)}
+input[type=range].big{-webkit-appearance:none;appearance:none;width:100%;height:18px;margin:6px 0 6px;cursor:pointer;border:2px solid var(--p-ink);
+  background:repeating-linear-gradient(90deg,rgba(7,31,75,.75) 0 1px,transparent 1px 5%),linear-gradient(90deg,var(--b),var(--a))}
+input[type=range].big::-webkit-slider-thumb{-webkit-appearance:none;width:34px;height:34px;border-radius:50%;border:4px solid #071F4B;background:radial-gradient(circle,#071F4B 0 4px,#FFD60A 5px);cursor:grab;box-shadow:0 0 0 2px #FFD60A}
+input[type=range].big::-moz-range-thumb{width:26px;height:26px;border-radius:50%;border:4px solid #071F4B;background:radial-gradient(circle,#071F4B 0 4px,#FFD60A 5px);cursor:grab;box-shadow:0 0 0 2px #FFD60A}
+.readout{margin-top:14px;font-size:1rem}
+.readout strong{font-weight:700}
+.readout p+p{margin-top:6px}
+.takeaway{margin-top:14px;padding-top:14px;border-top:1px dashed var(--rule);font-size:.98rem}
+.takeaway a{font-weight:700}
+
+.scopefig{margin:0;position:relative}
+.scope{position:relative}
+.scope svg{display:block;width:100%;height:auto;overflow:visible}
+.plotbg{fill:rgba(3,14,38,.5)}
+.plotframe{fill:none;stroke:var(--p-ink);stroke-width:2}
+.gl{stroke:rgba(190,225,255,.22);stroke-width:1;stroke-dasharray:620;animation:draw 1.2s cubic-bezier(.4,.1,.2,1) backwards}
+.gl.maj{stroke:rgba(190,225,255,.5)}
+.tick{fill:var(--p-muted);font:13px var(--d2)}
+.axt{fill:var(--p-ink);font:800 19px var(--d1);letter-spacing:.04em;text-transform:uppercase}
+.cl{fill:var(--p-muted);font:italic 13px var(--d2)}
+.zone{fill:rgba(255,214,10,.14);stroke:var(--p-dv);stroke-width:2;stroke-dasharray:7 5}
+.zlabel{fill:var(--p-dv);font:800 17px var(--d1);letter-spacing:.03em;text-transform:uppercase}
+.iso-fill{fill:url(#hatch)}
+.hatchline{stroke:rgba(190,225,255,.3);stroke-width:2}
+.iso{stroke:var(--p-ink);stroke-width:3}
+.isolabel{fill:var(--p-ink);font:800 14px var(--d1);letter-spacing:.05em;text-transform:uppercase;paint-order:stroke;stroke:#0B2B63;stroke-width:5px;stroke-linejoin:round}
+.dot{stroke:#071F4B;stroke-width:1.5;opacity:.5;cursor:pointer;transform-box:fill-box;transform-origin:center;
+  transition:opacity .25s,stroke .2s,stroke-width .2s;animation:pop .5s cubic-bezier(.2,1.5,.4,1) backwards;animation-delay:var(--d,.5s)}
+.dot.a{fill:var(--p-a)}.dot.b{fill:var(--p-b)}.dot.dv{fill:var(--p-dv)}
+.dot.in{opacity:1;stroke:var(--p-ink);stroke-width:2.5}
+.dot:hover,.dot.hl{opacity:1;stroke:#fff;stroke-width:4}
+.scan{fill:var(--p-dv);opacity:0;pointer-events:none;animation:scan 1.5s linear .5s backwards}
+.tip{position:absolute;pointer-events:none;background:#071F4B;color:var(--p-ink);border:2px solid var(--p-ink);padding:6px 11px;font-size:.88rem;line-height:1.35;white-space:nowrap;transform:translate(-50%,calc(-100% - 12px));z-index:4}
+.tip[hidden]{display:none}
+.tip b{display:block;font:800 1.25rem/1.05 var(--d1);text-transform:uppercase;letter-spacing:.02em}
+.cap{margin-top:14px;font-size:.95rem;color:var(--muted);max-width:60ch}
+.titleblock{display:grid;grid-template-columns:1fr 1fr;margin:16px 0 0;border:2px solid var(--p-ink)}
+.titleblock div{padding:7px 11px;border-top:1px solid var(--p-line);border-left:1px solid var(--p-line)}
+.titleblock div:nth-child(-n+2){border-top:0}
+.titleblock div:nth-child(odd){border-left:0}
+.titleblock div.wide{grid-column:1/-1;border-left:0}
+.titleblock dt{font-size:.78rem;color:var(--p-muted)}
+.titleblock dd{margin:0;font-weight:700;font-size:.93rem;line-height:1.3}
+
+.board{margin-top:54px}
+.board h2{font-size:clamp(1.9rem,3.6vw,2.8rem)}
+.board .sub{color:var(--muted);margin:8px 0 18px;max-width:70ch}
+ol.rank{list-style:none;margin:0;padding:0;columns:2;column-gap:60px;border-top:3px solid var(--p-ink)}
+ol.rank li{break-inside:avoid;display:grid;grid-template-columns:40px minmax(0,1.35fr) minmax(0,1fr) 40px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--rule)}
+ol.rank .n{font:900 1.7rem/1 var(--d1);color:var(--p-dv)}
+ol.rank .nm{display:flex;flex-wrap:wrap;align-items:center;gap:3px 9px;min-width:0}
+ol.rank .nm strong{font-weight:700;font-size:1.04rem}
+ol.rank .sc{text-align:right;font:800 1.5rem/1 var(--d1)}
+.legend{display:flex;gap:20px;font-size:.9rem;color:var(--muted);margin-top:14px;flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:14px;height:14px;margin-right:7px;vertical-align:-2px}
+.legend .la::before{background:var(--a)}.legend .lb::before{background:var(--b)}
+
+.short{padding:60px 0 6px}
+.short h2{margin-bottom:22px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px}
+.step{padding:22px 22px 24px}
+.step h3{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:1.75rem;text-transform:uppercase}
+.step h3::before{content:"";width:16px;height:16px;flex:none}
+.step:nth-child(1) h3::before{background:var(--ink)}
+.step:nth-child(2) h3::before{background:var(--b)}
+.step:nth-child(3) h3::before{background:var(--dv);outline:2px solid var(--ink);outline-offset:-2px}
+
+section.block{padding:74px 0 12px}
+.sec-head{position:relative;margin-bottom:26px}
+.sec-head>*{max-width:68ch}
+.sec-head p{margin-top:14px;font-size:1.06rem}
+.sec-head p+p{margin-top:10px}
+.sec-head::before{counter-increment:sheet;content:counter(sheet,decimal-leading-zero);position:absolute;right:0;top:-.42em;font:900 clamp(6rem,15vw,12rem)/1 var(--d1);
+  color:transparent;-webkit-text-stroke:2px var(--rule);opacity:.8;pointer-events:none;max-width:none}
+.controls{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:.92rem;font-weight:700}
+.field input[type=number],.field input[type=search],.field select{font:400 1rem var(--d2);color:var(--ink);background:var(--surface);border:2px solid var(--ink);border-radius:0;padding:8px 11px;min-height:46px}
+.field input[type=number]{width:130px}
+.seg{display:inline-flex;border:2px solid var(--ink);background:var(--surface)}
+.seg label{display:block}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;padding:10px 16px;font-weight:700;font-size:.95rem;cursor:pointer;min-height:46px}
+.seg input:checked+span{background:var(--ink);color:var(--paper)}
+.seg input:focus-visible+span{outline:3px solid var(--focus);outline-offset:-3px}
+.callout{padding:16px 20px 16px 26px;margin-bottom:22px;max-width:84ch;border-left:10px solid var(--dv)}
+
+.reelwrap{margin:6px 0 26px}
+.reel{display:flex;gap:0;align-items:flex-end;border-bottom:3px solid var(--ink);padding-top:6px}
+.reel.pre .blk{transform:scaleY(0)}
+.reel.play .blk{animation:grow .55s cubic-bezier(.2,.9,.3,1) backwards;animation-delay:calc(var(--i)*38ms)}
+button.blk{all:unset;box-sizing:border-box;display:flex;align-items:flex-end;justify-content:center;height:58px;min-width:0;cursor:pointer;
+  border-right:2px solid var(--paper);transform-origin:bottom;transition:transform .18s}
+button.blk:hover{transform:translateY(-6px)}
+button.blk.a{background:var(--a);color:var(--on-a)}
+button.blk.b{background:var(--b);color:var(--on-b)}
+button.blk.dv{background:var(--dv);color:var(--on-dv)}
+button.blk span{font:800 .85rem/1 var(--d1);padding-bottom:5px;overflow:hidden}
+.ruler{position:relative;height:30px}
+.ruler span{position:absolute;top:0;transform:translateX(-100%);padding:7px 5px 0 0;border-right:2px solid var(--ink);font-size:.78rem;font-weight:700;height:100%;white-space:nowrap}
+.reelnote{margin-top:6px}
+
+.tablewrap{background:var(--surface);border:2px solid var(--ink);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.96rem}
+th,td{padding:11px 15px;text-align:left;border-top:1px solid var(--rule);white-space:nowrap}
+thead th{border-top:0;border-bottom:3px double var(--ink);background:var(--paper);font:800 1.05rem/1.1 var(--d1);color:var(--ink)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr:hover td{background:var(--hover)}
+tbody tr:hover td:first-child{box-shadow:inset 5px 0 0 var(--dv)}
+tr.band th{background:repeating-linear-gradient(135deg,var(--band) 0 9px,transparent 9px 18px);font:800 1.1rem/1.1 var(--d1);text-transform:uppercase;letter-spacing:.03em;text-align:left;border-bottom:0}
+tr.band.alt th{background:var(--paper)}
+button.link{all:unset;cursor:pointer;font-weight:700;border-bottom:2px dotted var(--muted)}
+button.link:hover{color:var(--a);border-bottom-color:var(--a)}
+button.link:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+button.sort{all:unset;cursor:pointer;font:800 1.05rem/1.1 var(--d1)}
+button.sort:hover{color:var(--a)}
+button.sort:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.up{color:var(--a);font-weight:700}.down{color:var(--b);font-weight:700}
+
+.panels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px}
+.panel{padding:22px;border-top-width:8px}
+.panel.pa{border-top-color:var(--a)}.panel.pb{border-top-color:var(--b)}.panel.pc{border-top-color:var(--ink)}
+.panel h3{text-transform:uppercase;font-size:1.7rem}
+.panel p.d{font-size:.92rem;color:var(--muted);margin:5px 0 14px}
+.wrow{display:grid;grid-template-columns:minmax(0,1fr) 52px;gap:2px 10px;margin-bottom:14px}
+.wrow label{font-size:.95rem;font-weight:700;line-height:1.3}
+.wrow .src{grid-column:1/2;font-size:.8rem;color:var(--muted)}
+.wrow output{grid-row:1/3;grid-column:2;align-self:center;text-align:right;font:800 1.4rem/1 var(--d1)}
+.wrow input{grid-column:1/3;width:100%;margin:3px 0 0}
+.panel.pa input{accent-color:var(--a)}.panel.pb input{accent-color:var(--b)}.panel.pc input{accent-color:var(--ink)}
+
+dialog{border:2px solid var(--ink);border-radius:0;padding:0;max-width:min(700px,94vw);width:100%;background:var(--surface);color:var(--ink);max-height:90vh}
+dialog::backdrop{background:rgba(3,12,34,.7)}
+.dh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:20px 22px 16px;background:var(--plate);border-bottom:8px solid var(--p-dv)}
+.dh h3{font-size:2.6rem;text-transform:uppercase;line-height:.95}
+.dh .x{font-size:1.9rem;line-height:1;background:none;border:2px solid var(--p-ink);color:var(--p-ink);cursor:pointer;padding:2px 12px;min-height:44px}
+.dh .x:hover{background:var(--p-ink);color:var(--plate-deep)}
+.db{padding:6px 22px 24px}
+.db h4{font:800 1.45rem/1 var(--d1);text-transform:uppercase;margin:22px 0 8px}
+.mrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 36px;gap:10px;align-items:center;margin:7px 0;font-size:.93rem}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0;margin-top:16px;border:2px solid var(--ink)}
+.stat{padding:9px 12px;border-left:1px solid var(--rule);border-top:1px solid var(--rule);margin:-1px 0 0 -1px}
+.stat b{display:block;font:900 1.7rem/1 var(--d1)}
+.stat span{font-size:.82rem;color:var(--muted)}
+
+.about{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px}
+.about .panel{border-top-width:1px}
+.about .panel h3{margin-bottom:10px}
+.about ul{margin:0;padding-left:20px}.about li{margin:5px 0}
+.gloss{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 34px;margin:12px 0 0}
+.gloss dt{font-weight:700}
+.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.95rem}
+footer{margin-top:80px;padding:34px 0 46px;font-size:.92rem;position:relative}
+footer::before{content:"";position:absolute;left:0;right:0;top:0;height:12px;background:repeating-linear-gradient(-45deg,#FFD60A 0 15px,#0A0F1F 15px 30px)}
+footer .wrap{padding-top:18px;display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+footer .brand{font-size:1.4rem}
+
+@keyframes belt{to{transform:translateX(-50%)}}
+.ticker{display:flex;align-items:stretch;background:var(--plate-deep);border-bottom:1px solid var(--p-line)}
+.tk-label{flex:none;background:var(--p-dv);color:#1A1500;font:900 1.1rem/1 var(--d1);text-transform:uppercase;letter-spacing:.05em;padding:0 18px;display:flex;align-items:center}
+.tk-view{flex:1;min-width:0;overflow:hidden;white-space:nowrap;display:flex;align-items:center;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 28px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 28px,#000 calc(100% - 40px),transparent)}
+.tk-belt{display:inline-flex;animation:belt 90s linear infinite;will-change:transform}
+.tk-set{display:inline-flex}
+.tk-i{display:inline-flex;align-items:center;gap:10px;padding:11px 0 11px 26px;font-size:.95rem}
+.tk-i::after{content:"";width:8px;height:8px;background:var(--p-dv);transform:rotate(45deg);margin-left:26px}
+.tk-t{font:800 .95rem/1 var(--d1);text-transform:uppercase;letter-spacing:.05em;color:var(--p-dv)}
+.tk-ctl{flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;border-left:1px solid var(--p-line)}
+.tk-ctl button,.tk-ctl a{font:700 .85rem var(--d2);color:var(--p-ink);background:none;border:1px solid var(--p-line);padding:5px 11px;min-height:36px;display:inline-flex;align-items:center;cursor:pointer;text-decoration:none}
+.tk-ctl button:hover,.tk-ctl a:hover{border-color:var(--p-ink)}
+.tk-view:hover .tk-belt,.tk-view:focus-within .tk-belt,.ticker.paused .tk-belt{animation-play-state:paused}
+a.tk-i{color:inherit;text-decoration:none}a.tk-i:hover,a.tk-i:focus-visible{text-decoration:underline}
+.fpills{display:flex;gap:8px;flex-wrap:wrap}
+.fpill{font:700 .92rem var(--d2);color:var(--ink);background:transparent;border:2px solid var(--ink);padding:8px 15px;min-height:44px;cursor:pointer}
+.fpill:hover{background:var(--ink);color:var(--paper)}
+.fpill[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.feed{list-style:none;margin:26px 0 0 6px;padding:0;border-left:3px solid var(--ink)}
+.fi{position:relative;display:grid;grid-template-columns:150px minmax(0,1fr);gap:22px;padding:22px 0 22px 30px;border-top:1px solid var(--rule)}
+.fi:first-child{border-top:0}
+.fi::before{content:"";position:absolute;left:-11px;top:28px;width:16px;height:16px;background:var(--ink)}
+.fi.sample{background:repeating-linear-gradient(135deg,var(--band) 0 8px,transparent 8px 16px)}
+.fi.sample::before{background:var(--paper);border:3px dashed var(--ink)}
+.fd{font:900 1.4rem/1.05 var(--d1);text-transform:uppercase}
+.fh{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.ft{display:inline-flex;align-items:center;gap:7px;font:700 .8rem/1.45 var(--d2);padding:1px 10px 1px 8px;border:2px solid var(--ink)}
+.ft::before{content:"";width:9px;height:9px;background:var(--tc,var(--ink))}
+.t-budget{--tc:var(--dv)}.t-jea{--tc:var(--a)}.t-hearing{--tc:var(--b)}.t-milestone{--tc:var(--ink)}.t-data{--tc:var(--muted)}
+.ft.smp{border-style:dashed;background:var(--paper)}.ft.smp::before{display:none}
+.fb h3{font:800 1.6rem/1.08 var(--d1);margin-bottom:6px}
+.fb p{max-width:68ch}
+.fs{font-size:.88rem;color:var(--muted);margin-top:6px}
+.fs a{color:var(--muted)}
+@media (max-width:700px){.fi{grid-template-columns:1fr;gap:6px}}
+@media (max-width:520px){.tk-more{display:none}.tk-label{padding:0 12px}}
+@media (prefers-reduced-motion: reduce){.tk-view{overflow-x:auto}.tk-ctl button{display:none}.tk-set[aria-hidden]{display:none}}
+
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.badge{display:inline-block;font:800 .85rem/1 var(--d1);text-transform:uppercase;letter-spacing:.07em;padding:6px 10px;margin:0 6px 12px 0;vertical-align:middle}
+.badge.city{background:#0B2B63;color:#EAF4FF;border:2px solid #5E86C7}
+.badge.ss{background:var(--dv);color:var(--on-dv);border:2px solid var(--dv)}
+.badge.sm{font-size:.72rem;padding:3px 7px;margin:0 2px;letter-spacing:.05em}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.cmp-card{padding:24px 24px 22px;border-top-width:10px}
+.cmp-card.city{border-top-color:#0B2B63}
+.cmp-card.ss{border-top-color:var(--dv)}
+.cmp-card h3{font-size:1.9rem;text-transform:uppercase;margin:4px 0 8px}
+.cmp-card ul{margin:4px 0 12px;padding-left:20px}.cmp-card li{margin:3px 0}
+.grp-h{font-weight:700;margin-top:14px}
+.slope-h{font-size:1.9rem;text-transform:uppercase;margin:44px 0 8px}
+.slopewrap{overflow-x:auto;margin-top:14px;border:2px solid var(--ink);background:var(--surface)}
+svg.slopes{display:block;min-width:780px;width:100%;height:auto}
+.sl line{stroke-width:3;opacity:.9;transition:stroke-width .15s,opacity .15s}
+.sl.dv line{stroke:var(--dv-line)}.sl.a line{stroke:var(--a)}.sl.b line{stroke:var(--b)}
+.sl text{fill:var(--ink);font:13px var(--d2)}
+.sl .rk{font-weight:700}
+svg.slopes:hover .sl{opacity:.28}
+svg.slopes .sl:hover{opacity:1}
+.sl:hover line{stroke-width:6}.sl:hover text{font-weight:700}
+.sl-head{font:800 17px var(--d1);text-transform:uppercase;letter-spacing:.05em}
+.movers{margin-top:14px;font-size:1.02rem;max-width:80ch}
+#regTable tbody td:nth-child(4),#regTable tbody td:nth-child(6),#regHead th:nth-child(4),#regHead th:nth-child(6){border-left:3px double var(--ink)}
+th.grp{font:800 1rem/1 var(--d1);text-transform:uppercase;letter-spacing:.05em;text-align:center;border-bottom:0;border-left:3px double var(--ink)}
+th.grp.city{background:#0B2B63;color:#EAF4FF}
+th.grp.ss{background:var(--dv);color:var(--on-dv)}
+th.grp0{background:var(--paper);border-bottom:0}
+.dblock{margin:18px 0;padding:14px 16px 16px;border:2px solid var(--ink)}
+.dblock .badge{margin-bottom:6px}
+.dblock .stats{margin-top:12px}
+.gauge{position:relative;height:40px;background:var(--track);border:2px solid var(--ink);margin:30px 0 34px}
+.gauge i{display:block;height:100%;background:linear-gradient(90deg,var(--b),var(--a))}
+.gauge b{position:absolute;top:-10px;bottom:-10px;width:5px;background:var(--dv);outline:2px solid var(--ink);transform:translateX(-50%)}
+.gauge em{position:absolute;top:-30px;transform:translateX(-50%);font:800 .95rem var(--d1);font-style:normal;white-space:nowrap}
+.gauge .z{position:absolute;bottom:-26px;font:700 .8rem var(--d2);color:var(--muted)}
+.lab-grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:26px;align-items:start}
+.lab-in,.lab-cols{padding:22px}
+.lab-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
+.filebtn{display:inline-flex;align-items:center}
+.visually-hidden:focus-visible+*{outline:3px solid var(--focus)}
+.lab-l{display:block;font-weight:700;margin:10px 0 6px;font-size:.95rem}
+#labText,#labExport{width:100%;font:13px/1.5 Consolas,Menlo,"DejaVu Sans Mono",monospace;color:var(--ink);background:var(--paper);border:2px solid var(--ink);padding:10px;resize:vertical;white-space:pre;overflow:auto}
+.lab-adv{margin:12px 0;border:1px solid var(--rule);padding:10px 14px}
+.lab-adv summary{cursor:pointer;font-weight:700}
+.lab-w{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:12px}
+.lab-w fieldset{border:1px solid var(--rule);padding:8px 12px 10px;margin:0}
+.lab-w legend{font:800 1.05rem var(--d1);text-transform:uppercase;padding:0 6px}
+.lab-f{display:grid;grid-template-columns:minmax(0,1fr) 78px;gap:10px;align-items:center;margin:6px 0;font-size:.88rem}
+.lab-f input,.lab-f select{font:400 .95rem var(--d2);color:var(--ink);background:var(--surface);border:2px solid var(--ink);padding:5px 7px;width:100%;min-height:38px}
+.lab-f select{grid-column:1/-1}
+.labmsg{list-style:none;margin:12px 0 0;padding:0}
+.labmsg li{padding:7px 12px;margin:6px 0;border-left:6px solid var(--ink);background:var(--paper);font-size:.93rem}
+.labmsg li.err{border-left-color:var(--b)}.labmsg li.warn{border-left-color:var(--dv-line)}.labmsg li.ok{border-left-color:var(--a)}
+.coltab{width:100%;border-collapse:collapse;font-size:.9rem}
+.coltab th,.coltab td{padding:6px 8px;white-space:normal;border-top:1px solid var(--rule)}
+.coltab tr.g td{background:var(--band);font:800 1rem var(--d1);text-transform:uppercase}
+.lab-h{font-size:1.9rem;text-transform:uppercase;margin:36px 0 10px}
+.lab-sum{max-width:80ch;margin-bottom:16px;font-size:1.04rem}
+.lab-res{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:24px;align-items:start}
+.lab-plot{padding:14px}
+.lab-plot svg{display:block;width:100%;height:auto}
+.lab-plot .gl2{stroke:var(--rule);stroke-width:1}
+.lab-plot .t2{fill:var(--muted);font:12px var(--d2)}
+.lab-plot .ax2{fill:var(--ink);font:800 16px var(--d1);text-transform:uppercase;letter-spacing:.04em}
+.lab-plot .zone2{fill:var(--band);stroke:var(--dv-line);stroke-width:2;stroke-dasharray:6 4}
+.lab-plot .frame2{fill:none;stroke:var(--ink);stroke-width:2}
+.lab-plot .dot2{stroke:var(--paper);stroke-width:1.5}
+.lab-plot .dot2.a{fill:var(--a)}.lab-plot .dot2.b{fill:var(--b)}.lab-plot .dot2.dv{fill:var(--dv);stroke:var(--ink);stroke-width:2}
+
+[hidden]{display:none!important}
+.tabp{counter-reset:sheet 1}
+.tabs{display:flex;gap:0 26px;flex-wrap:wrap}
+.tabbtn{background:none;border:0;border-bottom:3px solid transparent;color:inherit;font:700 .98rem var(--d2);padding:6px 0;min-height:44px;cursor:pointer}
+.tabbtn:hover{border-bottom-color:var(--p-line)}.tabbtn[aria-selected="true"]{border-bottom-color:var(--p-dv)}
+.bar-top nav[id^="secnav"]{flex-basis:100%;order:5;border-top:1px solid var(--p-line);padding-top:4px}
+.btn.solid{background:var(--ink);color:var(--paper)}.btn.solid:hover{background:var(--dv);border-color:var(--dv);color:var(--on-dv)}
+.gauges{display:grid;grid-template-columns:1fr 1fr;margin:16px 0 0;border:2px solid var(--p-ink);background:rgba(3,14,38,.4)}
+.gauges>div{padding:12px 16px;border-top:1px solid var(--p-line);border-left:1px solid var(--p-line)}
+.gauges>div:nth-child(-n+2){border-top:0}.gauges>div:nth-child(odd){border-left:0}
+.gauges dt{font-size:.82rem;color:var(--p-muted);font-weight:700}.gauges dd{margin:0}
+.gauges b{display:block;font:900 2.3rem/1 var(--d1);text-transform:uppercase}.gauges span{font-size:.86rem;font-weight:700}
+.gauges .bar{margin:6px 0}
+.dash{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:28px;align-items:start}
+.side{padding:22px}.side h3{margin:10px 0 6px;text-transform:uppercase}.side form{display:grid;gap:12px;margin-top:16px}
+.meter{position:relative;height:20px;border:2px solid var(--ink);background:var(--track);margin:14px 0 6px}
+.meter i{display:block;height:100%;background:var(--a);transition:width .5s}.meter.met i{background:var(--dv)}
+.meter .mark{position:absolute;left:70%;top:-7px;bottom:-7px;width:4px;background:var(--b)}
+.mlab{display:flex;justify-content:space-between;gap:8px;font-size:.82rem;font-weight:700;flex-wrap:wrap}
+.pct{font:900 3rem/1 var(--d1);margin-top:10px}
+.status{min-height:1.6em;font-weight:700;font-size:.95rem}
+.field input[type=checkbox]{width:22px;min-height:22px;accent-color:var(--a)}
+.field.grow{flex:1 1 240px}
+td.rk{font:900 1.5rem/1 var(--d1);color:var(--a)}
+.cons{display:flex;align-items:center;gap:10px;min-width:130px}.cons .bar{flex:1}
+@media (max-width:980px){.dash{grid-template-columns:1fr}}
+@media (max-width:520px){.gauges{grid-template-columns:1fr}.gauges>div{border-left:0!important;border-top:1px solid var(--p-line)!important}.gauges>div:first-child{border-top:0!important}}
+@media (max-width:980px){.cmp,.lab-grid,.lab-res{grid-template-columns:1fr}.lab-w{grid-template-columns:1fr}}
+@media (max-width:980px){
+  .hero-grid{grid-template-columns:1fr;gap:34px}
+  .panels,.about,.steps,.gloss{grid-template-columns:1fr}
+  ol.rank{columns:1}
+  .sec-head::before{opacity:.4}
+}
+@media (max-width:520px){
+  .wrap{padding:0 16px}
+  ol.rank li{grid-template-columns:30px minmax(0,1fr) 38px}
+  ol.rank li .bar{grid-column:2/4;grid-row:2}
+  .facts dd{font-size:2.8rem}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+
+/* ---------- v7 additions ---------- */
+.step h3::before{display:none}
+.step h3 svg{flex:none;width:34px;height:34px;color:var(--ink)}
+.step:nth-child(2) h3 svg{color:var(--b)}.step:nth-child(3) h3 svg{color:var(--a)}
+.bigsvg{display:block;width:100%;height:auto}
+.dia{padding:20px 22px 22px;margin-top:28px}.dia h3{text-transform:uppercase;font-size:1.7rem;margin-bottom:6px}
+.dia-ctl{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:12px 0 4px}
+.dia-ctl input{flex:1 1 260px;accent-color:var(--a)}
+.dia-note{font-weight:700;min-height:3.2em;margin-top:6px;max-width:80ch}
+.dtx{font:700 14px var(--d2);fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+.dh{font:800 22px var(--d1);fill:var(--ink);text-transform:uppercase;letter-spacing:.04em}
+.dtm{font:13px var(--d2);fill:var(--muted)}
+.dline{stroke:var(--ink);stroke-width:2.5;fill:none;stroke-linejoin:round}
+.dfill{fill:var(--surface);stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round}
+.legend{list-style:none;padding:0;margin:14px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 28px}
+.legend li{display:flex;gap:10px;align-items:baseline;font-size:.97rem}
+.sw{width:14px;height:14px;flex:none;border:2px solid var(--ink);transform:translateY(2px)}
+.fout{display:grid;grid-template-columns:1fr 1fr;gap:26px;padding:22px;margin-top:26px}
+.fout h3{text-transform:uppercase;font-size:1.5rem}.fout ol,.fout ul{margin:10px 0 0;padding-left:24px}.fout li{margin:6px 0}
+.mv{font-weight:700}.mv.up{color:var(--a)}.mv.dn{color:var(--b)}
+.lab-terms{padding:22px;margin-top:26px}.lab-terms h3{text-transform:uppercase;margin-bottom:6px}
+.sb{width:120px;height:14px;display:block;border:1px solid var(--ink)}
+.sbt{fill:var(--track)}.sba{fill:var(--a)}.sbc{fill:var(--dv)}
+.key{display:flex;gap:18px;flex-wrap:wrap;font-size:.9rem;margin:0 0 12px}.key span{display:inline-flex;gap:8px;align-items:center}
+.top4 td small{display:block;color:var(--muted);white-space:normal;max-width:34ch}
+@media (max-width:760px){.fout,.legend{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="bar-top plate plate-bg" style="background:var(--plate-deep)">
+  <div class="wrap">
+    <a class="brand" href="#top" id="top">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="17" cy="17" r="12"/><path d="M17 1v8M17 25v8M1 17h8M25 17h8"/><circle cx="17" cy="17" r="3.2" fill="#FFD60A" stroke="none"/></svg>
+      Septic Scope
+    </a>
+    <div class="tabs" role="tablist" aria-label="Platform mode">
+      <button class="tabbtn" role="tab" id="t-lab" aria-selected="true" aria-controls="p-lab" data-t="lab">Research lab</button>
+      <button class="tabbtn" role="tab" id="t-off" aria-selected="false" aria-controls="p-off" data-t="off">Official city records</button>
+    </div>
+    <button class="btn" id="theme" type="button">Switch theme</button>
+    <nav aria-label="Sections" id="secnav">
+      <a href="#tug">The problem</a>
+      <a href="#formula">Adjust it</a>
+      <a href="#compare">Two methods</a>
+      <a href="#order">The fix</a>
+      <a href="#registry">Neighborhoods</a>
+      <a href="#lab">County lab</a>
+      <a href="#about">About</a>
+    </nav>
+    <nav aria-label="Official sections" id="secnav-off" hidden>
+      <a href="#costs">Costs</a>
+      <a href="#matrix">City matrix</a>
+      <a href="#consent">Sign-ups</a>
+      <a href="#updates">Updates</a>
+    </nav>
+  </div>
+</header>
+<div class="ticker plate" role="region" aria-label="City Council and funding updates">
+  <div class="tk-label">Latest</div>
+  <div class="tk-view"><div class="tk-belt" id="tkBelt"></div></div>
+  <div class="tk-ctl"><button type="button" id="tkPause" aria-label="Pause the updates ticker">Pause</button><a class="tk-more" href="#updates">All updates</a></div>
+</div>
+
+<main>
+<div class="tabp" id="p-lab" role="tabpanel" aria-labelledby="t-lab">
+<section class="hero plate plate-bg" id="tug" aria-labelledby="h-tug">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="ctrl">
+        <h1 id="h-tug"><span class="ln"><span style="--i:0">Who should</span></span><span class="ln"><span style="--i:1">get sewer</span></span><span class="ln"><span style="--i:2">first?</span></span></h1>
+        <p class="lede rise" style="--i:3">Thousands of Jacksonville homes still use septic tanks, and 31 neighborhoods are waiting to be connected to city sewer. The city can only pay for them one at a time, so the order matters. Try different priorities below and watch the list change.</p>
+        <dl class="facts rise" style="--i:4">
+          <div><dt>neighborhoods waiting</dt><dd>31</dd></div>
+          <div><dt>properties</dt><dd id="f-parcels">12,040</dd></div>
+          <div><dt>urgent on both counts</dt><dd id="f-dv">6</dd></div>
+        </dl>
+        <div class="tug frame rise" style="--i:5">
+          <div class="presets" role="group" aria-label="Quick settings"><button type="button" class="pre" data-v="100">Climate risk first</button><button type="button" class="pre" data-v="50">Balanced</button><button type="button" class="pre" data-v="0">Hardship first</button></div>
+          <label for="climate">What should count more: flood risk or community hardship?</label>
+          <div class="ends"><span class="e">Hardship <span id="v-eq">50</span>%</span><span class="c">Climate risk <span id="v-cl">50</span>%</span></div>
+          <input class="big" type="range" id="climate" min="0" max="100" step="1" value="50" aria-describedby="readout">
+          <div class="readout" id="readout" aria-live="polite"></div>
+          <p class="takeaway"><span id="tk"></span> <a href="#order">See how two lists solve this</a></p>
+        </div>
+      </div>
+
+      <figure class="scopefig rise" style="--i:2">
+        <div class="scope" id="scope">
+          <svg id="scopeSvg" viewBox="0 0 560 560" role="img" aria-label="Scatter plot of the 31 neighborhoods by climate risk score and hardship score. The ranked list below gives the same information as text."></svg>
+          <div class="tip" id="tip" hidden></div>
+        </div>
+        <figcaption class="cap">Every dot is a neighborhood: the further right, the greater the climate risk, and the higher up, the greater the hardship. Bigger dots have more properties. The sloped line is the cut-off for the top 10 under your blended setting, and the shaded side is inside it. The yellow corner is where neighborhoods are urgent on both counts. Select a dot for details.</figcaption>
+        <dl class="titleblock">
+          <div><dt>Project</dt><dd>Septic tank phase-out priorities</dd></div>
+          <div><dt>Area</dt><dd>Duval County, Florida</dd></div>
+          <div><dt>Prepared for</dt><dd>Jacksonville City Council and JEA</dd></div>
+          <div><dt>Date</dt><dd>June 2026</dd></div>
+          <div class="wide"><dt>Status</dt><dd>Prototype with estimated inputs</dd></div>
+        </dl>
+      </figure>
+    </div>
+
+    <div class="board rise" style="--i:7">
+      <span class="badge ss">Septic Scope</span>
+      <h2>Who goes first with one blended score</h2>
+      <p class="sub">This is what happens if Septic Scope's two scores are merged into one number. It is not the city's ranking, which is shown in Two methods below. Each bar shows what pushed a neighborhood up the list: cyan for climate risk, pink for hardship.</p>
+      <ol class="rank" id="tugList"></ol>
+      <div class="legend"><span class="la">Climate and flood risk</span><span class="lb">Hardship: income, health, vulnerability</span></div>
+      <p class="small muted" style="margin-top:14px"><span class="chip dv">Both</span> means a neighborhood faces serious flood risk and serious hardship at once. The plan calls these double vulnerability zones.</p>
+    </div>
+  </div>
+</section>
+
+<section class="short" aria-labelledby="h-short">
+  <div class="wrap">
+    <h2 id="h-short">The short version</h2>
+    <div class="steps">
+      <div class="step frame"><h3><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="13" width="24" height="15"/><path d="M12 13V8h10v5M17 28v3M11 29l-2 3M23 29l2 3"/></svg>The problem</h3><p>A 2016 city estimate put the number of septic tanks needing replacement at about 65,000. Connecting the 35 priority areas on the city's list is estimated at $1.6 billion, so the city has to choose who goes first. It ranks them on a 100-point matrix, last updated in June 2026.</p></div>
+      <div class="step frame"><h3><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11h23M21 5l6 6-6 6M30 24H7M13 18l-6 6 6 6"/></svg>The conflict</h3><p>Neighborhoods facing the worst flooding are often on the water. Neighborhoods facing the most hardship are often inland. Blend both into one score, as the top 10 list above does, and one group gets pushed down.</p></div>
+      <div class="step frame"><h3><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10l4 4 7-8M5 25l4 4 7-8M22 11h8M22 26h8"/></svg>The proposal</h3><p>Keep two separate lists, one for climate risk and one for hardship. Neighborhoods at the top of both go first, then the lists take turns. Each project is fully funded before the next begins.</p></div>
+    </div>
+    <div class="dia frame">
+      <h3>Why a rising water table is a problem</h3>
+      <p class="small muted">Drag the slider to add rain and watch the water table rise. A septic drainfield needs dry soil beneath it to treat wastewater. A sewer line is sealed, so it keeps working.</p>
+      <svg class="bigsvg" viewBox="0 0 780 340" role="img" aria-label="Cross-section comparing a septic system, which fails when the water table rises, with a sewer connection, which keeps working.">
+        <defs><pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="10" stroke="var(--rule)" stroke-width="2"/></pattern></defs>
+        <rect x="0" y="110" width="780" height="230" fill="url(#hatch)" opacity=".55"/>
+        <rect id="wtRect" x="0" y="270" width="388" height="70" fill="var(--a)" opacity=".5"/>
+        <line id="wtLine" x1="0" y1="270" x2="388" y2="270" stroke="var(--a)" stroke-width="3" stroke-dasharray="8 5"/>
+        <text id="wtLbl" x="378" y="262" text-anchor="end" class="dtm">Water table</text>
+        <line x1="0" y1="110" x2="780" y2="110" class="dline"/>
+        <line x1="390" y1="14" x2="390" y2="334" stroke="var(--rule)" stroke-width="2" stroke-dasharray="6 6"/>
+        <text x="18" y="30" class="dh">Septic system</text><text x="410" y="30" class="dh">Sewer connection</text>
+        <g fill="var(--rule)"><circle cx="250" cy="62" r="16"/><circle cx="276" cy="52" r="21"/><circle cx="304" cy="62" r="16"/><rect x="250" y="62" width="54" height="16"/></g>
+        <g id="drops" stroke="var(--a)" stroke-width="3" stroke-linecap="round"><line x1="256" y1="86" x2="252" y2="100"/><line x1="272" y1="86" x2="268" y2="100"/><line x1="288" y1="86" x2="284" y2="100"/><line x1="304" y1="86" x2="300" y2="100"/><line x1="320" y1="86" x2="316" y2="100"/></g>
+        <polygon points="40,110 40,72 80,42 120,72 120,110" class="dfill"/>
+        <path d="M100 110V140H160" class="dline"/>
+        <rect x="160" y="118" width="70" height="44" class="dfill"/><text x="195" y="186" text-anchor="middle" class="dtx">Tank</text>
+        <path d="M230 140H252" class="dline"/>
+        <rect id="dfield" x="252" y="126" width="124" height="40" class="dfill" stroke-dasharray="5 4"/>
+        <path d="M252 146H376" class="dline"/><text x="314" y="190" text-anchor="middle" class="dtx">Drainfield</text>
+        <text id="wtMsg" x="30" y="210" class="dtx" fill="var(--b)"></text>
+        <polygon points="430,110 430,72 470,42 510,72 510,110" class="dfill"/>
+        <path d="M490 110V180H730V110" class="dline"/>
+        <rect x="592" y="100" width="16" height="10" class="dfill"/><path d="M600 110V180" class="dline"/><text x="600" y="206" text-anchor="middle" class="dtx">Manhole</text>
+        <rect x="700" y="62" width="62" height="48" class="dfill"/><circle cx="720" cy="88" r="11" class="dline"/><circle cx="746" cy="88" r="7" class="dline"/>
+        <text x="731" y="52" text-anchor="middle" class="dtx">Treatment plant</text>
+        <text x="560" y="250" text-anchor="middle" class="dtx">Sealed sewer pipe</text><text x="560" y="270" text-anchor="middle" class="dtm">Works even when the ground is wet</text>
+      </svg>
+      <div class="dia-ctl"><label for="rainDia"><strong>Rain over the past few days</strong></label><input type="range" id="rainDia" min="0" max="100" value="15"></div>
+      <p class="dia-note" id="diaMsg" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="formula" aria-labelledby="h-formula">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="badge ss">Septic Scope framework (proposed)</span>
+      <h2 id="h-formula">Adjust it: build your own formula</h2>
+      <p>A weight is how much one factor counts. These start at the values proposed in the policy brief. Move any slider and every ranking on this page recalculates. For example, turning one factor all the way up and the rest to zero shows what happens when only that factor matters. Each group always adds up to 100%, so raising one slider lowers the others.</p>
+    </div>
+    <div class="controls"><button class="btn" id="resetW" type="button">Reset to the brief</button></div>
+    <div class="panels">
+      <div class="panel pa frame"><h3>Climate risk score</h3><p class="d">How exposed a neighborhood is to flooding and rising water.</p><div id="pA"></div></div>
+      <div class="panel pb frame"><h3>Hardship score</h3><p class="d">How hard failing septic systems would hit residents: income, health and vulnerability.</p><div id="pB"></div></div>
+      <div class="panel pc frame"><h3>Benefit score (CIS)</h3><p class="d">How much good a project does: people helped, failures fixed and cost per person.</p><div id="pC"></div></div>
+    </div>
+    <div class="fout frame" aria-live="polite">
+      <div><h3>Top 5 with your weights</h3><ol id="foTop"></ol></div>
+      <div><h3>Biggest moves versus the brief</h3><ul id="foMov"></ul></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="block" id="compare" aria-labelledby="h-compare">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="badge city">City matrix</span> <span class="badge ss">Septic Scope</span>
+      <h2 id="h-compare">Two ways to order the same 31 neighborhoods</h2>
+      <p>The city already ranks these neighborhoods with its own matrix. Septic Scope is a separate proposal, built by a Duval County student. The two are kept apart on this page and tagged wherever they appear, so you can always tell whose number you are looking at.</p>
+    </div>
+    <div class="cmp">
+      <div class="cmp-card frame city">
+        <span class="badge city">City matrix (official)</span>
+        <h3>One 100-point score</h3>
+        <p>Every area earns points in two groups, and the highest total goes first.</p>
+        <p class="grp-h">Environment, health and welfare: up to 70</p>
+        <ul><li>Health department site score: up to 60</li><li>Properties within 150 m of water: up to 5</li><li>Impaired streams (fecal coliform): up to 5</li></ul>
+        <p class="grp-h">Community factors: up to 30</p>
+        <ul><li>Developed before 1968: 10</li><li>Lower median home value: up to 5</li><li>No existing water system: up to 5</li><li>Stopping future septic growth: up to 5</li><li>Offsite economic development: up to 5</li></ul>
+        <p class="small muted">Source: city septic tank prioritization matrix, June 2026.</p>
+      </div>
+      <div class="cmp-card frame ss">
+        <span class="badge ss">Septic Scope (proposed)</span>
+        <h3>Two scores, two lists</h3>
+        <p>Climate risk and hardship are scored separately and never averaged together.</p>
+        <p class="grp-h">Climate risk score</p>
+        <ul><li>Flood zone, coastal wave zone, low ground, future flood risk, closeness to the river</li></ul>
+        <p class="grp-h">Hardship score</p>
+        <ul><li>Social vulnerability, low-income areas, health problems</li></ul>
+        <p class="grp-h">How the order is set</p>
+        <ul><li>Areas in the top eight of both lists (about a quarter) go first</li><li>Then the two lists take turns</li><li>Each project is fully funded before the next begins</li><li>Home value is not used</li></ul>
+        <p class="small muted">A separate benefit score shows how much good each project does.</p>
+      </div>
+    </div>
+    <h3 class="slope-h">How the order changes</h3>
+    <p class="small muted" style="max-width:70ch">Each line follows one neighborhood from its place on the city's list (left) to its place in the Septic Scope funding order (right). Hover over a line to follow it. Yellow lines are urgent on both counts, cyan are climate risk, and pink are hardship.</p>
+    <div class="slopewrap"><svg class="slopes" id="slopes" role="img" aria-label="Lines connecting each neighborhood's place on the city's list to its place in the Septic Scope funding order. The funding order table below lists the same changes as text."></svg></div>
+    <p class="movers" id="movers"></p>
+    <p class="small muted">Septic Scope positions follow from the inputs currently loaded. See About for what is still estimated.</p>
+  </div>
+</section>
+
+<section class="block" id="order" aria-labelledby="h-order">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="badge ss">Septic Scope framework (proposed)</span>
+      <h2 id="h-order">The fix: two lists that take turns</h2>
+      <p>Instead of one blended score, the plan keeps a climate risk list and a hardship list. Neighborhoods in the top eight of both lists go first. After that the lists alternate, and each project is paid for in full before the next one starts, so money is never spread too thin to finish anything.</p>
+      <p class="muted small">How to read the table: Order is the funding sequence. Finished is the year the project is paid for at your yearly budget. The last column shows how its place in line changes from the city's current ranking.</p>
+    </div>
+    <div class="controls">
+      <div class="field">
+        <label for="budget">Yearly funding in $ millions</label>
+        <input type="number" id="budget" min="10" max="1000" step="5" value="75" inputmode="numeric">
+      </div>
+      <fieldset class="field" style="border:0;padding:0;margin:0">
+        <legend style="padding:0;margin-bottom:6px">After the first group, the first turn goes to</legend>
+        <div class="seg">
+          <label><input type="radio" name="start" value="a" checked><span>Climate risk list</span></label>
+          <label><input type="radio" name="start" value="b"><span>Hardship list</span></label>
+        </div>
+      </fieldset>
+    </div>
+    <div class="callout frame" id="budgetNote" aria-live="polite"></div>
+    <div class="reelwrap">
+      <div class="reel" id="reel" aria-hidden="true"></div>
+      <div class="ruler" id="ruler" aria-hidden="true"></div>
+      <p class="reelnote small muted">Each block is one neighborhood in funding order, and its width is its estimated cost. Yellow blocks go first, then cyan and pink take turns.</p>
+    </div>
+    <div class="tablewrap">
+      <table id="orderTable">
+        <thead><tr>
+          <th class="num">Order</th><th>Neighborhood</th><th>List</th><th class="num">Properties</th><th class="num">Est. cost</th><th class="num">Finished</th><th>Change from city ranking</th>
+        </tr></thead>
+        <tbody id="orderBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="registry" aria-labelledby="h-reg">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="h-reg">All 31 neighborhoods</h2>
+      <p>Select a neighborhood name to see why it ranks where it does. Columns are grouped by method: the city's official matrix, then the Septic Scope framework. Scores run from 0 to 100, and higher means more urgent.</p>
+    </div>
+    <div class="controls">
+      <div class="field"><label for="q">Search</label><input type="search" id="q" placeholder="Neighborhood or driver"></div>
+      <div class="field"><label for="ft">List</label>
+        <select id="ft"><option value="all">All lists</option><option value="a">Climate risk</option><option value="b">Hardship</option><option value="dv">Double vulnerability</option></select></div>
+      <div class="field"><label for="fr">Region</label>
+        <select id="fr"><option value="all">All regions</option></select></div>
+    </div>
+    <p class="muted small" id="regCount" aria-live="polite" style="margin-bottom:10px"></p>
+    <div class="tablewrap">
+      <table id="regTable">
+        <thead><tr id="regGroup"></tr><tr id="regHead"></tr></thead>
+        <tbody id="regBody"></tbody>
+      </table>
+    </div>
+    <p class="muted small" id="noRes" hidden style="margin-top:12px">No neighborhoods match. Clear the search or choose All lists and All regions.</p>
+  </div>
+</section>
+
+<section class="block" id="lab" aria-labelledby="h-lab">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="badge ss">Septic Scope framework (proposed)</span>
+      <h2 id="h-lab">County lab</h2>
+      <p>Bring data from any county and run it through the Septic Scope framework. Paste a spreadsheet, upload a CSV, or start from the template. Leave out a column and its weight drops to zero, so you can use only the data you have. Everything runs in your browser, and nothing is sent anywhere.</p>
+    </div>
+    <div id="labOut" hidden>
+      <h3 class="lab-h">Results</h3>
+      <p class="lab-sum" id="labSum"></p>
+      <div class="lab-res">
+        <div class="lab-plot frame"><svg id="labPlot" viewBox="0 0 520 520" role="img" aria-label="Scatter plot of your areas by climate risk and hardship score"></svg>
+          <p class="small muted">Right means more climate risk and up means more hardship. The yellow corner is urgent on both counts. Hover a dot for its name.</p></div>
+        <div class="lab-tab"><div class="tablewrap"><table id="labTable"><thead id="labHead"></thead><tbody id="labBody"></tbody></table></div></div>
+      </div>
+      <h3 class="lab-h">Copy the results</h3>
+      <textarea id="labExport" rows="6" readonly spellcheck="false"></textarea>
+      <div class="lab-actions"><button class="btn" type="button" id="labCopy">Copy results</button><span id="labCopied" class="small muted" role="status"></span></div>
+    </div>
+    <div class="lab-grid">
+      <div class="lab-in frame">
+        <h3>Your data</h3>
+        <p class="small muted">One row per neighborhood. Only the name and the property count are required.</p>
+        <div class="lab-actions">
+          <label class="btn filebtn" for="labFile">Upload CSV</label><input type="file" id="labFile" accept=".csv,.tsv,.txt,text/csv" class="visually-hidden">
+          <button class="btn" type="button" id="labTemplate">Load template</button>
+          <button class="btn" type="button" id="labDemo">Load demo county</button>
+        </div>
+        <label for="labText" class="lab-l">Your data (paste here, tabs from a spreadsheet work too)</label>
+        <textarea id="labText" rows="9" spellcheck="false" placeholder="name,properties,floodplain_pct,svi,..."></textarea>
+        <details class="lab-adv">
+          <summary>Weights and settings</summary>
+          <div class="lab-w">
+            <fieldset><legend>Climate weights</legend><div id="labWA"></div></fieldset>
+            <fieldset><legend>Hardship weights</legend><div id="labWB"></div></fieldset>
+            <fieldset><legend>Benefit weights</legend><div id="labWC"></div></fieldset>
+            <fieldset><legend>Settings</legend>
+              <div class="lab-f"><label for="labWave">Wave zone share that counts as maximum (%)</label><input type="number" id="labWave" value="25" min="1" max="100"></div>
+              <div class="lab-f"><label for="labRiver">River distance that counts as zero risk (km)</label><input type="number" id="labRiver" value="5" min="0.1" step="0.1"></div>
+              <div class="lab-f"><label for="labPov">Poverty rate that counts as maximum (%)</label><input type="number" id="labPov" value="40" min="1" max="100"></div>
+              <div class="lab-f"><label for="labQct">Weight of QCT share in the low-income score (%)</label><input type="number" id="labQct" value="60" min="0" max="100"></div>
+              <div class="lab-f"><label for="labShare">Share of areas counted as top (%)</label><input type="number" id="labShare" value="25" min="5" max="50"></div>
+              <div class="lab-f"><label for="labStart">After the first group, the first turn goes to</label><select id="labStart"><option value="a">Climate risk list</option><option value="b">Hardship list</option></select></div>
+              <div class="lab-f"><label for="labBudget">Yearly funding in $ millions (needs cost_per_property)</label><input type="number" id="labBudget" value="25" min="1"></div>
+            </fieldset>
+          </div>
+        </details>
+        <div class="lab-actions"><button class="btn lab-run" type="button" id="labRun">Run the framework</button><button class="btn" type="button" id="labDuval">Run the two-row example</button></div>
+        <ul class="labmsg" id="labMsg" role="status" aria-live="polite"></ul>
+      </div>
+      <div class="lab-cols frame">
+        <h3>Columns it understands</h3>
+        <table class="coltab">
+          <thead><tr><th>Column</th><th>What it is</th></tr></thead>
+          <tbody>
+            <tr><td><b>name</b></td><td>Neighborhood name. Required.</td></tr>
+            <tr><td><b>properties</b></td><td>Number of properties or units. Required.</td></tr>
+            <tr class="g">
+              <td colspan="2">Climate risk</td></tr>
+            <tr><td>floodplain_pct</td><td>% in the 100-year floodplain (0 to 100)</td></tr>
+            <tr><td>wave_pct</td><td>% in coastal wave zones (0 to 100)</td></tr>
+            <tr><td>elevation_ft</td><td>Average ground height; lower is riskier</td></tr>
+            <tr><td>flood_factor</td><td>Average First Street Flood Factor (1 to 10)</td></tr>
+            <tr><td>river_km</td><td>Distance to the nearest river or tributary</td></tr>
+            <tr class="g"><td colspan="2">Hardship</td></tr>
+            <tr><td>svi</td><td>CDC Social Vulnerability Index, 0 to 1</td></tr>
+            <tr><td>qct_pct</td><td>% of properties in a HUD Qualified Census Tract</td></tr>
+            <tr><td>poverty_pct</td><td>Tract poverty rate (%)</td></tr>
+            <tr><td>health_pct</td><td>Health burden, such as average CDC PLACES prevalence (%)</td></tr>
+            <tr class="g"><td colspan="2">Benefit (optional)</td></tr>
+            <tr><td>household_size</td><td>People per household</td></tr>
+            <tr><td>vulnerable_pct</td><td>Share of residents who are 65+, under 18, disabled or uninsured (%)</td></tr>
+            <tr><td>failing_score</td><td>Any failing-systems score; higher means worse</td></tr>
+            <tr><td>cost_per_property</td><td>Sewer cost per property in dollars</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="lab-terms frame"><h3>Terms the lab uses</h3><dl class="gloss"><div><dt>Climate risk score</dt><dd>How exposed a neighborhood is to flooding, storm tides and rising water, using federal flood maps and 30-year projections.</dd></div>
+<div><dt>100-year floodplain</dt><dd>Land with a 1 in 100 chance of flooding in any given year. It can still flood more than once a century.</dd></div>
+<div><dt>Base flood elevation</dt><dd>How high floodwater is expected to rise. Lower ground is at greater risk.</dd></div>
+<div><dt>Hardship score</dt><dd>How hard failing septic systems would hit residents, based on income, health and other vulnerabilities. Home value is deliberately left out so wealth is never mistaken for need.</dd></div>
+<div><dt>Social vulnerability index</dt><dd>A federal CDC score from 0 to 1 that combines income, housing, age, language and other factors. Higher means more vulnerable.</dd></div>
+<div><dt>Double vulnerability zone</dt><dd>A neighborhood in the top eight on both the climate risk list and the hardship list. It is funded first.</dd></div>
+<div><dt>Benefit score (CIS)</dt><dd>Short for Composite Impact Score. It measures how much good a project does: properties and people served, failures fixed, cost per person and share of vulnerable residents.</dd></div></dl></div>
+  </div>
+</section>
+
+<section class="block" id="about" aria-labelledby="h-about">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-about">About this tool</h2></div>
+    <div class="about">
+      <div class="panel frame" style="grid-column:1/-1">
+        <h3>Plain-language glossary</h3>
+        <dl class="gloss"><div><dt>Septic tank phase-out</dt><dd>Jacksonville's program to connect neighborhoods that use septic tanks to the city sewer system. It is governed by Chapter 751 of the city code.</dd></div>
+<div><dt>Property (parcel)</dt><dd>One lot of land, usually a single home or business. The city counts projects in parcels.</dd></div>
+<div><dt>Fully funded</dt><dd>One project gets all the money it needs to finish before the next one starts, instead of money being split across many projects that never finish.</dd></div>
+<div><dt>70% consent rule</dt><dd>City ordinance requires 70% of property owners in a neighborhood to agree before work begins. This plan keeps that rule.</dd></div>
+<div><dt>City ranking</dt><dd>The order the city uses today: a 100-point matrix that combines Duval County Health Department site scores with community factors such as development before 1968. Last updated June 2026.</dd></div></dl>
+        <p class="small muted" style="margin-top:14px">Terms about the scoring itself, such as climate risk, hardship and the benefit score, are explained in the County lab.</p>
+      </div>
+      <div class="panel frame" style="grid-column:1/-1">
+        <h3>Two frameworks, kept separate</h3>
+        <p>The <span class="badge city sm">City matrix (official)</span> is the ranking the city and JEA use today. Its property counts, scores, ranks, health department site scores and costs come straight from the June 2026 matrix. The <span class="badge ss sm">Septic Scope (proposed)</span> framework is a separate idea: two lists, double vulnerability zones, full funding one project at a time, and a benefit score. Anything labeled with the yellow tag follows from the proposal and is not an official ranking.</p>
+      </div>
+      <div class="panel frame">
+        <h3>Where the Septic Scope framework came from</h3>
+        <p>Septic Scope is built on a policy brief proposing an amendment to Chapter 751 of the Jacksonville Code of Ordinances, which governs the Septic Tank Phase-Out program. The framework was developed by a Duval County student, reviewed with a University of North Florida dean, and presented to the Jacksonville Environmental Protection Board.</p>
+      </div>
+      <div class="panel frame" style="grid-column:1/-1">
+        <h3>How the Septic Scope lists work</h3>
+        <ul>
+          <li>A neighborhood is a double vulnerability zone when it ranks in the top eight on both the climate and equity scores. It goes first.</li>
+          <li>Everyone else joins the list where their score is higher, and the two lists alternate.</li>
+          <li>Median home value is not used, so wealth is never mistaken for need.</li>
+          <li>The 70% resident consent rule still applies to every project.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<div class="tabp" id="p-off" role="tabpanel" aria-labelledby="t-off" hidden>
+  <section class="hero plate plate-bg" aria-labelledby="h-off">
+    <div class="wrap"><div class="hero-grid">
+      <div>
+        <span class="badge city rise" style="--i:0">City matrix (official)</span>
+        <h1 id="h-off" style="margin-top:6px"><span class="ln"><span style="--i:0">What the city</span></span><span class="ln"><span style="--i:1">has on record</span></span></h1>
+        <p class="lede rise" style="--i:3">The city&rsquo;s June 2026 septic tank prioritization matrix, today&rsquo;s rainfall and soil conditions, council and funding updates, and a shared counter for resident sign-ups.</p>
+        <dl class="facts rise" style="--i:4">
+          <div><dt>areas ranked by the city</dt><dd>35</dd></div>
+          <div><dt>lots in those areas</dt><dd>23,257</dd></div>
+          <div><dt>estimated sewer cost</dt><dd>$1.62B</dd></div>
+        </dl>
+      </div>
+      <div class="frame rise" style="--i:2;padding:20px 22px">
+        <span class="chip dv" id="g-chip">Connecting to weather feed</span>
+        <h3 style="margin-top:10px;font-size:1.9rem;text-transform:uppercase">Rain, soil and backup risk screen</h3>
+        <dl class="gauges">
+          <div><dt>72-hour rainfall</dt><dd><b id="g-rain">&mdash;</b><span id="g-rain-n">Waiting for feed</span></dd></div>
+          <div><dt>Soil moisture, top 7 cm</dt><dd><b id="g-soil">&mdash;</b><span id="g-soil-n">Waiting for feed</span></dd></div>
+          <div><dt>Backup risk screen</dt><dd><b id="g-risk">&mdash;</b><div class="bar"><i class="bb" id="g-riskbar" style="width:0"></i></div><span>Screening estimate from rain and soil moisture</span></dd></div>
+          <div><dt>Water table depth</dt><dd><b>Not measured</b><span>Needs a shallow monitoring well feed from JEA, SJRWMD or USGS</span></dd></div>
+        </dl>
+        <p class="small muted" id="g-note" style="margin-top:12px">Rainfall and soil moisture are modeled for central Jacksonville (Open-Meteo). The risk screen is a simple rule of thumb, not a JEA model.</p>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="block" id="costs" aria-labelledby="h-costs"><div class="wrap">
+    <div class="sec-head"><span class="badge city">City matrix (official)</span><h2 id="h-costs">What the program costs</h2>
+      <p>These figures come from the city&rsquo;s June 2026 matrix, printed June 23, 2026. Four areas sit above the ranked list and 31 are ranked, for 35 in all.</p></div>
+    <div class="stats">
+      <div class="stat"><b>35</b><span>areas on the matrix (4 above the list, 31 ranked)</span></div>
+      <div class="stat"><b>23,257</b><span>lots in those areas</span></div>
+      <div class="stat"><b>$1.62 billion</b><span>estimated sewer cost, $1,617,887,735 in total</span></div>
+      <div class="stat"><b>$52.3 million</b><span>estimated water cost where an area has no public water</span></div>
+    </div>
+    <div class="dia frame">
+      <h3>Where the $71,618 per home goes</h3>
+      <p class="small muted">The city&rsquo;s standard 2026 sewer cost per dwelling, including the connection. The top bar is sewer. The bottom bar is the extra cost where a home also has no public water.</p>
+      <svg id="costSvg" class="bigsvg" viewBox="0 0 760 150" role="img" aria-label="Stacked bars showing how the standard sewer cost per home and the extra water cost are divided."></svg>
+      <ul class="legend" id="costLeg"></ul>
+    </div>
+    <h3 class="slope-h">Four areas listed above the ranking</h3>
+    <p class="small muted" style="max-width:76ch">The matrix shows these four areas first, with costs based on bids, design estimates or the actual cost of a finished project. They are not part of the 1 to 31 ranking below.</p>
+    <div class="tablewrap" style="margin-top:12px"><table class="top4">
+      <thead><tr><th>Area</th><th class="num">Lots in area</th><th class="num">Within 150 m of water</th><th class="num">City score</th><th class="num">Cost per lot</th><th>Total sewer cost</th><th class="num">Water cost</th></tr></thead>
+      <tbody id="top4Body"></tbody></table></div>
+  </div></section>
+
+  <section class="block" id="matrix" aria-labelledby="h-mat"><div class="wrap">
+    <div class="sec-head"><span class="badge city">City matrix (official)</span><h2 id="h-mat">City matrix and resident sign-ups</h2>
+      <p>The city ranks neighborhoods on one 100-point score. The table below is the June 2026 ranking, which this page cannot change. Pick a neighborhood to log a resident sign-up for it. A project needs 70% of owners before work starts.</p></div>
+    <p class="key"><span><svg width="16" height="12" aria-hidden="true"><rect width="16" height="12" class="sba" stroke="var(--ink)"/></svg>Environment, health and welfare (up to 70)</span><span><svg width="16" height="12" aria-hidden="true"><rect width="16" height="12" class="sbc" stroke="var(--ink)"/></svg>Community factors (up to 30)</span><span class="muted">Each bar is the city score out of 100.</span></p>
+    <div class="dash">
+      <div>
+        <div class="controls">
+          <div class="field grow"><label for="ms">Search</label><input type="search" id="ms" placeholder="Neighborhood or region"></div>
+          <div class="field"><label for="mf">Show</label><select id="mf"><option value="all">All 31</option><option value="1">City rank 1 to 10</option><option value="2">City rank 11 to 20</option><option value="3">City rank 21 and below</option></select></div>
+        </div>
+        <div class="tablewrap" style="max-height:540px"><table>
+          <thead><tr><th class="num">City rank</th><th>Neighborhood</th><th>Region</th><th class="num">Properties</th><th class="num">City score</th><th>How the score builds</th><th class="num">Within 150 m of water</th><th>Sign-ups</th></tr></thead>
+          <tbody id="mb"></tbody></table></div>
+        <p class="small muted" id="mn" aria-live="polite" style="margin-top:10px"></p>
+      </div>
+      <div class="side frame" id="consent">
+        <span class="chip a">70% sign-up register</span>
+        <h3>Register your sign-up</h3>
+        <div class="field" style="margin-top:12px"><label for="area">Neighborhood</label><select id="area"></select></div>
+        <div class="meter" id="meter"><i id="cbar" style="width:0"></i><b class="mark" title="Required 70% threshold"></b></div>
+        <div class="mlab"><span>0</span><span>70% required</span><span id="ctarget"></span></div>
+        <div class="pct" id="cpct">0%</div>
+        <p class="small muted" id="cnote"></p>
+        <p class="small muted">The city counts legal property owners. This register uses the property count as a stand-in.</p>
+        <form id="cform">
+          <div class="field"><label for="rn">Your name (optional)</label><input type="text" id="rn" autocomplete="name"></div>
+          <div class="field"><label for="ra">Property address</label><input type="text" id="ra" required autocomplete="street-address"></div>
+          <div class="field"><label style="display:flex;gap:10px;align-items:flex-start;font-weight:400"><input type="checkbox" id="rc" required>I own this property and I support connecting it to the sewer.</label></div>
+          <button class="btn solid" type="submit">Submit sign-up</button>
+          <p class="small muted" id="cmode">Checking for the shared database&hellip;</p>
+          <p class="status" id="cs" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+    <div class="dia frame">
+      <h3>Real example: Riverview</h3>
+      <p class="small muted">Riverview needed 1,722 of its 2,459 owners to sign up. Only two public readings exist, so the line between them is not a measurement.</p>
+      <svg id="rvSvg" class="bigsvg" viewBox="0 0 700 270" role="img" aria-label="Riverview was at 22 percent sign-up in June 2024 and passed the 70 percent requirement in November 2025."></svg>
+      <p class="small muted">Sources: city advisory committee summary, June 13, 2024, and JEA&rsquo;s septic tank phase-out page.</p>
+    </div>
+  </div></section>
+
+<section class="block" id="updates" aria-labelledby="h-updates">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="h-updates">Council and funding updates</h2>
+      <p>Budget votes, JEA funding decisions, hearings and 70% sign-up milestones: the events that decide how fast a neighborhood moves up the line.</p>
+      <p class="muted small">Entries tagged Sample are placeholders for now. The rest are dated milestones from city and JEA sources.</p>
+    </div>
+    <div class="fpills" role="group" aria-label="Filter updates">
+      <button type="button" class="fpill" data-f="all">All updates</button>
+      <button type="button" class="fpill" data-f="budget">City funding</button>
+      <button type="button" class="fpill" data-f="jea">JEA funding</button>
+      <button type="button" class="fpill" data-f="hearing">Hearings and meetings</button>
+      <button type="button" class="fpill" data-f="milestone">70% sign-ups</button>
+    </div>
+    <ol class="feed" id="feed" aria-live="polite"></ol>
+  </div>
+</section>
+
+</div>
+</main>
+
+<footer class="plate plate-bg" style="background:var(--plate-deep)">
+  <div class="wrap">
+    <span class="brand"><svg width="28" height="28" viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="17" cy="17" r="12"/><path d="M17 1v8M17 25v8M1 17h8M25 17h8"/><circle cx="17" cy="17" r="3.2" fill="#FFD60A" stroke="none"/></svg>Septic Scope</span>
+  </div>
+</footer>
+
+<dialog id="dlg" aria-labelledby="dTitle">
+  <div class="dh plate"><div><h3 id="dTitle"></h3><div id="dSub" class="small" style="margin-top:8px;color:var(--p-muted)"></div></div><button class="x" id="dClose" aria-label="Close details">&times;</button></div>
+  <div class="db" id="dBody"></div>
+</dialog>
+
+<script>
+(function(){
+"use strict";
+
+const D=[
+{n:"Eggleston Heights",r:"Arlington",w:0,l:1,p:3416,d:"SVI 0.91 / HUD QCT",a:[20,5,40,30,30],b:[91,95,82],h:2.8,f:50.01,c:71.618,v:52,o:75.61,u:1446,mt:1.31,tp:4.69},
+{n:"St. Nicholas",r:"Southside",w:1,l:2,p:623,d:"SVI 0.83 + Flood Zone AE",a:[86,62,80,84,85],b:[83,78,74],h:2.5,f:50.99,c:71.618,v:41,o:75.33,u:343,mt:0.31,tp:4.88},
+{n:"Emerson",r:"Southside",w:0,l:3,p:751,d:"CDC Health Burden High",a:[25,5,45,35,35],b:[72,60,90],h:2.7,f:48.69,c:71.618,v:44,o:74.76,u:437,mt:0.4,tp:4.87},
+{n:"Julington Creek",r:"Mandarin",w:1,l:4,p:2000,d:"FSF Risk Score + SVI",a:[80,55,74,92,88],b:[80,72,78],h:2.4,f:59.03,c:71.618,v:36,o:74.06,u:1282,mt:1.16,tp:2.79},
+{n:"Champion Forest",r:"Westside",w:0,l:5,p:610,d:"HUD QCT / Poor Health Prev.",a:[30,5,50,40,30],b:[76,88,80],h:2.9,f:47.0,c:71.618,v:50,o:70.28,u:262,mt:0.24,tp:1.43},
+{n:"Westfield",r:"Northwest",w:0,l:14,p:190,d:"SVI 0.87",a:[18,5,38,28,25],b:[87,62,70],h:2.8,f:52.0,c:71.618,v:49,o:65.13,u:13,mt:0.01,tp:0.0},
+{n:"Sans Pereil",r:"East",w:0,l:9,p:369,d:"HUD QCT",a:[26,5,40,30,32],b:[74,92,66],h:2.6,f:47.11,c:71.618,v:42,o:68.58,u:181,mt:0.16,tp:4.47},
+{n:"Lakeshore",r:"West",w:1,l:8,p:1344,d:"Tidal Zone + SVI 0.85",a:[84,85,88,80,82],b:[85,72,78],h:2.6,f:49.64,c:71.618,v:47,o:68.76,u:253,mt:0.23,tp:2.0},
+{n:"Holly Oaks",r:"Arlington",w:0,l:6,p:282,d:"Health Burden Composite",a:[22,5,42,30,28],b:[70,58,88],h:2.7,f:45.82,c:71.618,v:43,o:69.18,u:171,mt:0.16,tp:5.0},
+{n:"Oak Lawn",r:"Southside",w:0,l:7,p:230,d:"SVI / QCT Overlap",a:[28,5,44,34,32],b:[78,80,64],h:2.6,f:47.88,c:71.618,v:40,o:69.03,u:220,mt:0.2,tp:3.75},
+{n:"Atlantic Highlands",r:"Beaches",w:1,l:10,p:102,d:"Wave Hazard Zone V",a:[62,96,80,72,70],b:[25,10,30],h:2.2,f:45.26,c:71.618,v:31,o:68.01,u:54,mt:0.05,tp:2.79},
+{n:"Empire Point",r:"Southside",w:1,l:11,p:342,d:"100-Yr Floodplain 88%",a:[88,58,80,74,78],b:[38,20,40],h:2.3,f:46.16,c:71.618,v:35,o:67.72,u:212,mt:0.19,tp:3.79},
+{n:"Cedar River",r:"West",w:1,l:13,p:386,d:"Max Priority: Both Tracks",a:[96,70,92,86,90],b:[88,90,80],h:2.8,f:45.08,c:71.618,v:53,o:67.53,u:263,mt:0.24,tp:4.41},
+{n:"Mill Creek",r:"Arlington",w:1,l:12,p:435,d:"Max Priority: Both Tracks",a:[80,60,76,90,96],b:[84,70,90],h:2.6,f:46.98,c:71.618,v:46,o:67.6,u:141,mt:0.13,tp:4.26},
+{n:"Julington Hills",r:"Mandarin",w:1,l:16,p:617,d:"Max Priority: Both Tracks",a:[90,52,80,90,80],b:[82,68,88],h:2.5,f:50.52,c:71.618,v:45,o:64.02,u:432,mt:0.39,tp:3.8},
+{n:"Kinard",r:"Northwest",w:0,l:15,p:81,d:"SVI / Health Burden",a:[24,5,40,32,26],b:[76,62,82],h:2.6,f:51.12,c:71.618,v:44,o:65.11,u:59,mt:0.05,tp:2.84},
+{n:"Spring Glen",r:"Southside",w:0,l:18,p:485,d:"HUD QCT",a:[24,5,40,30,26],b:[72,86,68],h:2.5,f:40.13,c:71.618,v:41,o:62.27,u:348,mt:0.32,tp:3.79},
+{n:"Lone Star Park",r:"Arlington",w:0,l:17,p:321,d:"SVI 0.89",a:[20,5,38,28,24],b:[89,64,66],h:2.9,f:41.33,c:71.618,v:51,o:62.46,u:127,mt:0.12,tp:5.0},
+{n:"Inwood Terrace",r:"Arlington",w:0,l:20,p:95,d:"CDC Health Burden",a:[26,5,42,32,30],b:[64,56,86],h:2.6,f:40.0,c:71.618,v:40,o:61.51,u:52,mt:0.05,tp:4.87},
+{n:"Hood Landing II",r:"Southwest",w:1,l:22,p:509,d:"BFE / St. Johns Proximity",a:[66,40,85,70,88],b:[30,15,35],h:2.3,f:48.66,c:71.618,v:33,o:60.85,u:410,mt:0.37,tp:3.8},
+{n:"Point La Vista",r:"Southside",w:1,l:19,p:830,d:"FSF 30-Yr Score High",a:[64,50,70,86,74],b:[28,10,32],h:2.2,f:44.84,c:71.618,v:32,o:62.02,u:143,mt:0.13,tp:4.39},
+{n:"Northlake",r:"Northside",w:1,l:21,p:121,d:"100-Yr Floodplain + BFE",a:[78,34,82,70,60],b:[42,25,44],h:2.5,f:44.56,c:71.618,v:37,o:61.18,u:121,mt:0.11,tp:3.14},
+{n:"Beauclerc Gardens",r:"Southside",w:1,l:23,p:530,d:"Coastal Flood Risk",a:[62,62,70,72,70],b:[36,18,38],h:2.3,f:48.64,c:71.618,v:36,o:59.5,u:300,mt:0.27,tp:4.25},
+{n:"Clifton",r:"Arlington",w:0,l:24,p:524,d:"SVI Composite",a:[24,5,40,30,24],b:[80,66,68],h:2.6,f:37.93,c:71.618,v:40,o:58.2,u:309,mt:0.28,tp:4.26},
+{n:"Ortega",r:"West",w:1,l:25,p:167,d:"St. Johns River Proximity",a:[60,50,64,70,92],b:[14,5,22],h:2.3,f:43.7,c:71.618,v:28,o:57.73,u:31,mt:0.03,tp:2.0},
+{n:"Oakhaven",r:"Southside",w:0,l:28,p:790,d:"HUD QCT / Health Burden",a:[22,5,40,30,26],b:[68,82,80],h:2.5,f:31.91,c:71.618,v:43,o:52.4,u:500,mt:0.45,tp:3.79},
+{n:"Southside Estates",r:"Southside",w:0,l:26,p:2305,d:"SVI Score",a:[30,5,44,34,30],b:[84,66,70],h:2.4,f:28.94,c:71.618,v:38,o:55.05,u:1780,mt:1.61,tp:5.0},
+{n:"The Cape",r:"Northside",w:1,l:27,p:40,d:"Wave Hazard + BFE Low",a:[56,80,78,62,68],b:[26,8,30],h:2.2,f:39.64,c:71.618,v:30,o:52.62,u:35,mt:0.03,tp:0.0},
+{n:"Odessa",r:"Northwest",w:0,l:29,p:34,d:"SVI / Health Burden",a:[20,5,38,28,22],b:[74,56,80],h:2.6,f:31.0,c:71.618,v:41,o:50.34,u:31,mt:0.03,tp:0.0},
+{n:"Pablo Point",r:"Intracoastal West",w:1,l:30,p:238,d:"Tidal Saturation / Zone VE",a:[68,88,72,66,76],b:[12,4,20],h:2.1,f:42.31,c:71.618,v:27,o:48.75,u:133,mt:0.12,tp:2.79},
+{n:"Mt. Pleasant",r:"East Arlington",w:0,l:31,p:439,d:"SVI / QCT Overlap",a:[24,5,40,30,24],b:[77,78,66],h:2.6,f:34.87,c:71.618,v:42,o:46.25,u:280,mt:0.25,tp:1.61}
+];
+
+const AK=[["Homes in the 100-year floodplain","FEMA flood maps"],["Coastal wave hazard zone","FEMA, Zone V/VE"],["Low ground (base flood elevation)","FEMA FIRMS"],["Future flood risk, next 30 years","First Street Foundation / NOAA"],["Closeness to the St. Johns River","USGS NHD / JEA GIS"]];
+const BK=[["Social vulnerability index","CDC/ATSDR SVI"],["Low-income area (HUD designation)","HUD LIHTC QCT List"],["Health problems in the area","CDC PLACES Tract-Level Data"]];
+const CK=[["Property count","City matrix, June 2026"],["Population served","ACS 5-Year Estimates"],["Health department site score","City matrix (DCHD 2025 score)"],["Cost efficiency (lower cost per person)","City standard cost / est. household"],["Vulnerable persons share","ACS/CDC PLACES"]];
+const DEF={wA:[25,20,15,25,15],wB:[40,25,35],wC:[25,25,20,15,15]};
+const S={wA:DEF.wA.slice(),wB:DEF.wB.slice(),wC:DEF.wC.slice(),climate:50,budget:75,start:"a",sort:{k:"pos",dir:1},q:"",ft:"all",fr:"all"};
+let SEQ=[],TOTAL=0,DVN=0;
+const RM=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ord=n=>{const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);};
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+const money=m=>m>=1000?"$"+(m/1000).toFixed(2)+"B":"$"+((m>=100||Number.isInteger(m))?Math.round(m):m.toFixed(1))+"M";
+const eff=ws=>{const s=ws.reduce((x,y)=>x+y,0)||1;return ws.map(x=>x/s);};
+const chip=(n,short)=>n.track==="dv"?`<span class="chip dv">${short?"Both":"Double vulnerability"}</span>`:n.track==="a"?`<span class="chip a">Climate risk</span>`:`<span class="chip b">Hardship</span>`;
+const trackName=t=>t==="dv"?"Double vulnerability":t==="a"?"Climate risk":"Hardship";
+
+function compute(){
+  const ea=eff(S.wA),eb=eff(S.wB),ec=eff(S.wC);
+  D.forEach(n=>{
+    n.A=n.a.reduce((s,v,i)=>s+v*ea[i],0);
+    n.B=n.b.reduce((s,v,i)=>s+v*eb[i],0);
+    n.pop=n.p*n.h; n.cost=n.p*n.c/1000; n.cpc=n.c*1000/n.h;
+  });
+  const nm=(f,inv)=>{const v=D.map(f),lo=Math.min(...v),hi=Math.max(...v);return v.map(x=>hi===lo?50:(inv?hi-x:x-lo)/(hi-lo)*100);};
+  const sc=[nm(n=>n.p),nm(n=>n.pop),nm(n=>n.f),nm(n=>n.cpc,true),nm(n=>n.v)];
+  D.forEach((n,i)=>{n.cs=sc.map(s=>s[i]);n.cis=n.cs.reduce((s,v,j)=>s+v*ec[j],0);});
+  [...D].sort((x,y)=>y.A-x.A).forEach((n,i)=>n.rA=i+1);
+  [...D].sort((x,y)=>y.B-x.B).forEach((n,i)=>n.rB=i+1);
+  D.forEach(n=>{
+    n.dv=n.rA<=8&&n.rB<=8;
+    n.tier=n.dv?((n.rA<=5&&n.rB<=5)?"MAX":"ACC"):"";
+    n.track=n.dv?"dv":(n.A>n.B?"a":"b");
+  });
+  const dv=D.filter(n=>n.dv).sort((x,y)=>(x.tier===y.tier?0:x.tier==="MAX"?-1:1)||((y.A+y.B)-(x.A+x.B)));
+  const qa=D.filter(n=>n.track==="a").sort((x,y)=>y.A-x.A);
+  const qb=D.filter(n=>n.track==="b").sort((x,y)=>y.B-x.B);
+  const seq=[...dv]; let turn=S.start;
+  while(qa.length||qb.length){
+    let q=turn==="a"?qa:qb; if(!q.length) q=turn==="a"?qb:qa;
+    seq.push(q.shift()); turn=turn==="a"?"b":"a";
+  }
+  let cum=0;
+  seq.forEach((n,i)=>{n.pos=i+1;cum+=n.cost;n.cum=cum;n.year=Math.max(1,Math.ceil(cum/S.budget-1e-9));});
+  SEQ=seq;TOTAL=cum;DVN=dv.length;
+}
+const blended=n=>(S.climate/100)*n.A+(1-S.climate/100)*n.B;
+
+function flip(ul,html){
+  const old={};
+  ul.querySelectorAll("li").forEach(li=>{const r=li.getBoundingClientRect();old[li.dataset.n]=[r.left,r.top];});
+  ul.innerHTML=html;
+  if(RM) return;
+  ul.querySelectorAll("li").forEach(li=>{
+    const o=old[li.dataset.n]; if(o===undefined) return;
+    const r=li.getBoundingClientRect(),dx=o[0]-r.left,dy=o[1]-r.top; if(!dx&&!dy) return;
+    li.style.transition="none";li.style.transform="translate("+dx+"px,"+dy+"px)";
+    void li.offsetWidth;
+    li.style.transition="transform .4s cubic-bezier(.2,.7,.2,1)";li.style.transform="";
+  });
+}
+function renderTug(){
+  const c=S.climate/100;
+  const all=[...D].sort((x,y)=>blended(y)-blended(x));
+  const top=all.slice(0,10);
+  flip($("tugList"),top.map((n,i)=>`<li data-n="${esc(n.n)}"><span class="n">${i+1}</span><div class="nm"><strong>${esc(n.n)}</strong>${chip(n,true)}</div><div class="bar" role="img" aria-label="Climate pull ${Math.round(c*n.A)}, equity pull ${Math.round((1-c)*n.B)}"><i class="ba" style="width:${c*n.A}%"></i><i class="bb" style="width:${(1-c)*n.B}%"></i></div><span class="sc">${Math.round(blended(n))}</span></li>`).join(""));
+  $("v-cl").textContent=S.climate;$("v-eq").textContent=100-S.climate;
+  document.querySelectorAll(".pre").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.v===S.climate)));
+  $("tk").textContent=S.climate>=70?"Putting climate risk first helps waterfront neighborhoods, but communities facing the most hardship inland are pushed far down the list."
+    :S.climate<=30?"Putting hardship first helps the communities in greatest need, but neighborhoods facing flood and tidal damage fall behind."
+    :"A middle setting waters down both signals, so a neighborhood has to be fairly high on both to rise.";
+  const water=top.filter(n=>n.w).length;
+  const inl=all.findIndex(n=>!n.w), wat=all.findIndex(n=>n.w&&!n.dv);
+  $("readout").innerHTML=
+    `<p><strong>${water} of the top 10</strong> are on the river or coast, and ${10-water} are inland.</p>`+
+    `<p>Best-placed inland neighborhood: ${esc(all[inl].n)}, ${ord(inl+1)}. Best-placed waterfront neighborhood outside the double vulnerability group: ${esc(all[wat].n)}, ${ord(wat+1)}.</p>`;
+}
+
+function renderOrder(){
+  const startName=S.start==="a"?"Climate risk":"Hardship";
+  const rows=[];
+  SEQ.forEach((n,i)=>{
+    if(i===0&&DVN>0) rows.push(`<tr class="band"><th colspan="7" scope="colgroup">Double vulnerability zones go first (${DVN})</th></tr>`);
+    if(i===DVN) rows.push(`<tr class="band alt"><th colspan="7" scope="colgroup">Then the two lists take turns, starting with ${startName}</th></tr>`);
+    const d=n.l-n.pos;
+    const delta=d>0?`<span class="up" aria-label="${d} places earlier">&#9650; ${d} earlier</span>`:d<0?`<span class="down" aria-label="${-d} places later">&#9660; ${-d} later</span>`:`<span class="muted">same</span>`;
+    rows.push(`<tr><td class="num">${n.pos}</td><td><button class="link" data-i="${D.indexOf(n)}">${esc(n.n)}</button></td><td>${chip(n)}</td><td class="num">${fmt(n.p)}</td><td class="num">${money(n.cost)}</td><td class="num">Year ${n.year}</td><td>city rank ${n.l} &nbsp; ${delta}</td></tr>`);
+  });
+  $("orderBody").innerHTML=rows.join("");
+  const years=Math.ceil(TOTAL/S.budget-1e-9), first=SEQ[0];
+  $("budgetNote").innerHTML=`At <strong>${money(S.budget)} a year</strong>, ${esc(first.n)} is finished in year ${first.year} and all 31 neighborhoods are finished in about <strong>${years} years</strong> (estimated total ${money(TOTAL)}). If the same money were spread evenly across all 31 at once, the first neighborhood would not be finished until about year ${years}.`;
+}
+
+const COLS=[
+  ["n","Neighborhood",n=>n.n,false],["r","Region",n=>n.r,false],["p","Properties",n=>n.p,true],
+  ["l","Rank",n=>n.l,true],["o","Score",n=>n.o,true],
+  ["pos","Order",n=>n.pos,true],["track","List",n=>n.track,false],["w","Shoreline",n=>n.w,false],["A","Climate risk",n=>n.A,true],["B","Hardship",n=>n.B,true],["cis","Benefit",n=>n.cis,true]
+];
+function buildHead(){
+  $("regGroup").innerHTML='<th colspan="3" class="grp0"></th><th colspan="2" class="grp city">City matrix (official)</th><th colspan="6" class="grp ss">Septic Scope (proposed)</th>';
+  $("regHead").innerHTML=COLS.map(([k,t,,num])=>`<th class="${num?"num":""}" scope="col" aria-sort="none" data-k="${k}"><button class="sort" type="button" data-k="${k}">${t}<span aria-hidden="true"></span></button></th>`).join("");
+}
+function renderReg(){
+  const q=S.q.trim().toLowerCase();
+  let rows=D.filter(n=>(!q||n.n.toLowerCase().includes(q)||n.d.toLowerCase().includes(q))&&(S.ft==="all"||n.track===S.ft)&&(S.fr==="all"||n.r===S.fr));
+  const col=COLS.find(c=>c[0]===S.sort.k),g=col[2];
+  rows.sort((x,y)=>{const a=g(x),b=g(y);return (typeof a==="string"?a.localeCompare(b):a-b)*S.sort.dir;});
+  $("regBody").innerHTML=rows.map(n=>`<tr><td><button class="link" data-i="${D.indexOf(n)}">${esc(n.n)}</button></td><td>${esc(n.r)}</td><td class="num">${fmt(n.p)}</td><td class="num">${n.l}</td><td class="num">${n.o.toFixed(1)}</td><td class="num">${n.pos}</td><td>${chip(n)}</td><td>${n.w?"River or coast":"Inland"}</td><td class="num">${Math.round(n.A)}</td><td class="num">${Math.round(n.B)}</td><td class="num">${Math.round(n.cis)}</td></tr>`).join("");
+  $("noRes").hidden=rows.length>0;
+  $("regCount").textContent=`Showing ${rows.length} of 31 neighborhoods`;
+  document.querySelectorAll("#regHead th").forEach(th=>{
+    const on=th.dataset.k===S.sort.k;
+    th.setAttribute("aria-sort",on?(S.sort.dir===1?"ascending":"descending"):"none");
+    th.querySelector("span").textContent=on?(S.sort.dir===1?" \u25B2":" \u25BC"):"";
+  });
+}
+
+function mrow(label,val,col){return `<div class="mrow"><span>${esc(label)}</span><div class="bar"><i style="width:${val}%;background:${col}"></i></div><span class="num" style="text-align:right">${Math.round(val)}</span></div>`;}
+function openDetail(i){
+  const n=D[i];
+  $("dTitle").textContent=n.n;
+  $("dSub").innerHTML=`${esc(n.r)} &nbsp; ${chip(n)}`;
+  const why=n.dv
+    ?`${esc(n.n)} ranks ${ord(n.rA)} of 31 on climate risk and ${ord(n.rB)} of 31 on hardship. Both are in the top eight, so it is a double vulnerability zone and is funded ahead of the alternating order, in position ${n.pos}.`
+    :`${esc(n.n)} ranks ${ord(n.rA)} on climate risk and ${ord(n.rB)} on hardship. It joins the ${trackName(n.track).toLowerCase()} list, where its score is higher, and is funded ${ord(n.pos)} overall.`;
+  const st=(b,t)=>`<div class="stat"><b>${b}</b><span>${t}</span></div>`;
+  $("dBody").innerHTML=
+    `<section class="dblock"><span class="badge city">City matrix (official)</span><p class="small muted">From the city's June 2026 septic tank prioritization matrix.</p>`+
+    `<div class="stats">${st(n.l+" of 31","city rank")}${st(n.o.toFixed(2),"city score, out of 100")}${st(n.f.toFixed(2),"health department site score, out of 60")}${st(fmt(n.p),"properties")}${st(fmt(n.u),"properties within 150 m of water ("+Math.round(n.u/n.p*100)+"%)")}${st(n.mt.toFixed(2),"metric tons a year of water-quality benefit")}${st(money(n.cost),"sewer cost at $71,618 per property")}</div></section>`+
+    `<section class="dblock"><span class="badge ss">Septic Scope (proposed)</span><p>${why}</p>`+
+    `<div class="stats">${st(n.l+" to "+n.pos,"city rank to Septic Scope order")}${st(fmt(n.pop),"people served (est.)")}${st("$"+fmt(n.cpc),"cost per person (est.)")}${st("Year "+n.year,"finished at "+money(S.budget)+" a year")}</div>`+
+    `<h4>Climate risk score ${Math.round(n.A)}</h4>`+AK.map((k,j)=>mrow(k[0],n.a[j],"var(--a)")).join("")+
+    `<h4>Hardship score ${Math.round(n.B)}</h4>`+BK.map((k,j)=>mrow(k[0],n.b[j],"var(--b)")).join("")+
+    `<h4>Benefit score (CIS) ${Math.round(n.cis)}</h4>`+CK.map((k,j)=>mrow(k[0],n.cs[j],"var(--ink)")).join("")+
+    `<p class="small muted" style="margin-top:14px">Septic Scope sub-scores are scaled 0 to 100. Climate and hardship inputs are still estimates.</p></section>`;
+  const dlg=$("dlg"); if(dlg.showModal) dlg.showModal(); else dlg.setAttribute("open","");
+}
+
+function buildPanel(id,keys,arr){
+  $(id).innerHTML=keys.map((k,i)=>`<div class="wrow"><label for="${id}${i}">${esc(k[0])}</label><output id="${id}${i}o" for="${id}${i}"></output><span class="src">${esc(k[1])}</span><input type="range" id="${id}${i}" min="0" max="100" step="5" value="${S[arr][i]}" data-arr="${arr}" data-i="${i}"></div>`).join("");
+}
+function updateOutputs(){
+  [["pA",AK,"wA"],["pB",BK,"wB"],["pC",CK,"wC"]].forEach(([id,keys,arr])=>{
+    const e=eff(S[arr]);
+    keys.forEach((_,i)=>{$(id+i+"o").textContent=Math.round(e[i]*100)+"%";$(id+i).value=S[arr][i];});
+  });
+}
+
+function renderCompare(){
+  const y=p=>48+(p-1)*21,xL=262,xR=598;
+  let h=`<text class="sl-head" x="${xL-12}" y="24" text-anchor="end">City matrix rank</text><text class="sl-head" x="${xR+12}" y="24">Septic Scope order</text>`;
+  [...D].sort((a,b)=>a.l-b.l).forEach(n=>{
+    const c=n.dv?"dv":n.track;
+    h+=`<g class="sl ${c}"><title>${esc(n.n)}: city rank ${n.l}, Septic Scope order ${n.pos}</title><line x1="${xL}" y1="${y(n.l)}" x2="${xR}" y2="${y(n.pos)}"/><text class="rk" x="${xL-10}" y="${y(n.l)+4}" text-anchor="end">${n.l}. ${esc(n.n)}</text><text x="${xR+10}" y="${y(n.pos)+4}">${n.pos}. ${esc(n.n)}</text></g>`;
+  });
+  const svg=$("slopes");svg.setAttribute("viewBox","0 0 860 "+(y(D.length)+26));svg.innerHTML=h;
+  const mv=D.map(n=>({n,d:n.l-n.pos})),f=x=>`${esc(x.n.n)} (${x.n.l} to ${x.n.pos})`;
+  const up=mv.filter(x=>x.d>0).sort((a,b)=>b.d-a.d).slice(0,3),dn=mv.filter(x=>x.d<0).sort((a,b)=>a.d-b.d).slice(0,3);
+  $("movers").innerHTML=`<strong>Moves up the most:</strong> ${up.length?up.map(f).join(", "):"nobody"}. <strong>Moves down the most:</strong> ${dn.length?dn.map(f).join(", "):"nobody"}.`;
+}
+function setW(arr,i,v){
+  const w=S[arr],o=w.map((_,j)=>j).filter(j=>j!==i);v=Math.max(0,Math.min(100,Math.round(v)));
+  const rest=100-v,so=o.reduce((t,j)=>t+w[j],0),nw=w.slice();nw[i]=v;
+  o.forEach(j=>nw[j]=so>0?w[j]*rest/so:rest/o.length);
+  const fl=nw.map(Math.floor);let left=100-fl.reduce((t,x)=>t+x,0);
+  nw.map((x,j)=>[x-fl[j],j]).filter(p=>p[1]!==i).sort((a,b)=>b[0]-a[0]).forEach(p=>{if(left>0){fl[p[1]]++;left--;}});
+  if(left>0) fl[i]+=left;
+  S[arr]=fl;
+}
+function renderFormulaOut(){
+  const keep=[S.wA,S.wB,S.wC];S.wA=DEF.wA;S.wB=DEF.wB;S.wC=DEF.wC;compute();
+  const base={};D.forEach(n=>{base[n.n]=n.pos;});
+  S.wA=keep[0];S.wB=keep[1];S.wC=keep[2];compute();
+  $("foTop").innerHTML=SEQ.slice(0,5).map(n=>`<li><strong>${esc(n.n)}</strong> ${chip(n,true)}</li>`).join("");
+  const mv=D.map(n=>({n,d:base[n.n]-n.pos})).filter(x=>x.d!==0).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d)).slice(0,5);
+  $("foMov").innerHTML=mv.length?mv.map(x=>`<li><strong>${esc(x.n.n)}</strong> <span class="mv ${x.d>0?"up":"dn"}">${x.d>0?"up "+x.d:"down "+(-x.d)}</span>, order ${base[x.n.n]} to ${x.n.pos}</li>`).join(""):"<li>Your weights match the brief, so nothing moves.</li>";
+}
+function renderFacts(){
+  $("f-parcels").textContent=fmt(D.reduce((s,n)=>s+n.p,0));
+  $("f-dv").textContent=DVN;
+}
+let pending=false;
+function refresh(){
+  if(pending) return; pending=true;
+  requestAnimationFrame(()=>{pending=false;compute();renderTug();renderScope();renderOrder();renderReel();renderCompare();renderReg();renderFacts();renderFormulaOut();updateOutputs();});
+}
+
+const SC={W:560,H:560,l:60,r:22,t:22,b:60};SC.pw=SC.W-SC.l-SC.r;SC.ph=SC.H-SC.t-SC.b;
+const X=v=>SC.l+v/100*SC.pw,Y=v=>SC.t+(100-v)/100*SC.ph;
+const NS="http://www.w3.org/2000/svg";
+const mk=(tag,attrs,parent,text)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!==undefined)e.textContent=text;if(parent)parent.appendChild(e);return e;};
+const SCR={};
+function buildScope(){
+  const svg=$("scopeSvg");
+  const defs=mk("defs",{},svg);
+  const pat=mk("pattern",{id:"hatch",width:9,height:9,patternUnits:"userSpaceOnUse",patternTransform:"rotate(45)"},defs);
+  mk("line",{x1:0,y1:0,x2:0,y2:9,class:"hatchline"},pat);
+  const cp=mk("clipPath",{id:"plotclip"},defs);
+  mk("rect",{x:SC.l,y:SC.t,width:SC.pw,height:SC.ph},cp);
+  mk("rect",{x:SC.l,y:SC.t,width:SC.pw,height:SC.ph,class:"plotbg"},svg);
+  const g=mk("g",{},svg);
+  for(let v=0;v<=100;v+=10){
+    const cls="gl"+(v%50===0?" maj":"");
+    mk("line",{x1:X(v),y1:SC.t,x2:X(v),y2:SC.t+SC.ph,class:cls,style:"animation-delay:"+(v*5+150)+"ms"},g);
+    mk("line",{x1:SC.l,y1:Y(v),x2:SC.l+SC.pw,y2:Y(v),class:cls,style:"animation-delay:"+(v*5+270)+"ms"},g);
+  }
+  for(let v=0;v<=100;v+=20){
+    mk("text",{x:X(v),y:SC.t+SC.ph+22,"text-anchor":"middle",class:"tick"},svg,v);
+    mk("text",{x:SC.l-10,y:Y(v)+4,"text-anchor":"end",class:"tick"},svg,v);
+  }
+  mk("text",{x:SC.l+SC.pw/2,y:SC.H-10,"text-anchor":"middle",class:"axt"},svg,"Climate risk score");
+  mk("text",{x:16,y:SC.t+SC.ph/2,"text-anchor":"middle",class:"axt",transform:"rotate(-90 16 "+(SC.t+SC.ph/2)+")"},svg,"Hardship score");
+  mk("text",{x:SC.l+12,y:SC.t+22,class:"cl"},svg,"Mostly hardship");
+  mk("text",{x:SC.l+SC.pw-12,y:SC.t+SC.ph-12,"text-anchor":"end",class:"cl"},svg,"Mostly climate risk");
+  SCR.zone=mk("rect",{class:"zone"},svg);
+  SCR.zlabel=mk("text",{x:X(100)-10,y:Y(100)+22,"text-anchor":"end",class:"zlabel"},svg,"Urgent on both counts");
+  SCR.fill=mk("path",{class:"iso-fill","clip-path":"url(#plotclip)"},svg);
+  SCR.iso=mk("line",{class:"iso"},svg);
+  SCR.isol=mk("text",{class:"isolabel","text-anchor":"middle"},svg,"Top 10 cut-off");
+  mk("rect",{x:SC.l,y:SC.t,width:SC.pw,height:SC.ph,class:"plotframe"},svg);
+  const MAXP=Math.max(...D.map(n=>n.p));
+  const dg=mk("g",{},svg);
+  D.forEach((n,i)=>{
+    n.dot=mk("circle",{class:"dot",r:(3.6+8*Math.sqrt(n.p/MAXP)).toFixed(1),"data-i":i,style:"--d:"+(0.5+n.A/100*1.5).toFixed(2)+"s"},dg);
+  });
+  mk("rect",{x:SC.l,y:SC.t,width:3,height:SC.ph,class:"scan"},svg);
+}
+function renderScope(){
+  const c=S.climate/100;
+  const all=[...D].sort((x,y)=>blended(y)-blended(x));
+  const top=new Set(all.slice(0,10));
+  const T=(blended(all[9])+blended(all[10]))/2;
+  const A8=[...D].sort((x,y)=>y.A-x.A)[7].A,B8=[...D].sort((x,y)=>y.B-x.B)[7].B;
+  const z=SCR.zone;
+  z.setAttribute("x",X(A8));z.setAttribute("y",Y(100));z.setAttribute("width",X(100)-X(A8));z.setAttribute("height",Y(B8)-Y(100));
+  const f=p=>c*p[0]+(1-c)*p[1]-T;
+  const sq=[[0,0],[100,0],[100,100],[0,100]],out=[];
+  for(let i=0;i<4;i++){
+    const p=sq[i],q=sq[(i+1)%4],fp=f(p),fq=f(q);
+    if(fp>=0) out.push(p);
+    if((fp>=0)!==(fq>=0)){const t=fp/(fp-fq);out.push([p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t]);}
+  }
+  SCR.fill.setAttribute("d",out.length?"M"+out.map(p=>X(p[0]).toFixed(1)+","+Y(p[1]).toFixed(1)).join("L")+"Z":"");
+  const pts=[],add=(x,y)=>{if(x>=-1e-6&&x<=100+1e-6&&y>=-1e-6&&y<=100+1e-6&&!pts.some(p=>Math.abs(p[0]-x)+Math.abs(p[1]-y)<1e-6)) pts.push([x,y]);};
+  if(1-c>1e-9){add(0,T/(1-c));add(100,(T-c*100)/(1-c));}
+  if(c>1e-9){add(T/c,0);add((T-(1-c)*100)/c,100);}
+  if(pts.length>=2){
+    const p=pts[0],q=pts[1],x1=X(p[0]),y1=Y(p[1]),x2=X(q[0]),y2=Y(q[1]);
+    SCR.iso.setAttribute("x1",x1);SCR.iso.setAttribute("y1",y1);SCR.iso.setAttribute("x2",x2);SCR.iso.setAttribute("y2",y2);
+    let ang=Math.atan2(y2-y1,x2-x1)*180/Math.PI; if(ang>90) ang-=180; if(ang<=-90) ang+=180;
+    const mx=(x1+x2)/2,my=(y1+y2)/2;
+    SCR.isol.setAttribute("x",mx);SCR.isol.setAttribute("y",my-9);SCR.isol.setAttribute("transform","rotate("+ang.toFixed(1)+" "+mx+" "+my+")");
+    SCR.iso.style.display="";SCR.isol.style.display="";
+  }else{SCR.iso.style.display="none";SCR.isol.style.display="none";}
+  D.forEach(n=>{
+    n.dot.setAttribute("cx",X(n.A).toFixed(1));n.dot.setAttribute("cy",Y(n.B).toFixed(1));
+    n.dot.setAttribute("class","dot "+n.track+(top.has(n)?" in":""));
+  });
+}
+
+function renderReel(){
+  $("reel").innerHTML=SEQ.map((n,i)=>`<button class="blk ${n.track}" type="button" tabindex="-1" data-i="${D.indexOf(n)}" style="flex:${n.cost} 1 0;--i:${i}" title="${esc(n.n)}: ${money(n.cost)}, finished in year ${n.year}"><span>${n.pos}</span></button>`).join("");
+  const yrs=Math.ceil(TOTAL/S.budget-1e-9),step=yrs>24?5:yrs>12?2:1;
+  let t="";for(let y=step;y<=yrs;y+=step){t+=`<span style="left:${Math.min(100,y*S.budget/TOTAL*100)}%">Year ${y}</span>`;}
+  $("ruler").innerHTML=t;
+}
+function tugUpdate(){compute();renderTug();renderScope();}
+
+$("climate").addEventListener("input",e=>{S.climate=+e.target.value;tugUpdate();});
+document.querySelectorAll(".pre").forEach(b=>b.addEventListener("click",()=>{S.climate=+b.dataset.v;$("climate").value=S.climate;tugUpdate();}));
+$("budget").addEventListener("input",e=>{const v=+e.target.value;if(v>=1){S.budget=v;compute();renderOrder();renderReel();renderReg();}});
+document.querySelectorAll('input[name="start"]').forEach(r=>r.addEventListener("change",e=>{S.start=e.target.value;refresh();}));
+["pA","pB","pC"].forEach(id=>$(id).addEventListener("input",e=>{const t=e.target;if(!t.dataset.arr) return;setW(t.dataset.arr,+t.dataset.i,+t.value);refresh();}));
+$("resetW").addEventListener("click",()=>{S.wA=DEF.wA.slice();S.wB=DEF.wB.slice();S.wC=DEF.wC.slice();refresh();});
+$("q").addEventListener("input",e=>{S.q=e.target.value;renderReg();});
+$("ft").addEventListener("change",e=>{S.ft=e.target.value;renderReg();});
+$("fr").addEventListener("change",e=>{S.fr=e.target.value;renderReg();});
+$("regHead").addEventListener("click",e=>{
+  const b=e.target.closest("button.sort"); if(!b) return;
+  const k=b.dataset.k; S.sort=S.sort.k===k?{k,dir:-S.sort.dir}:{k,dir:1}; renderReg();
+});
+["orderBody","regBody","reel"].forEach(id=>$(id).addEventListener("click",e=>{
+  const b=e.target.closest("button.link,button.blk"); if(b) openDetail(+b.dataset.i);
+}));
+$("dClose").addEventListener("click",()=>$("dlg").close());
+$("dlg").addEventListener("click",e=>{if(e.target===$("dlg")) $("dlg").close();});
+
+[...new Set(D.map(n=>n.r))].sort().forEach(r=>{const o=document.createElement("option");o.value=r;o.textContent=r;$("fr").appendChild(o);});
+buildPanel("pA",AK,"wA");buildPanel("pB",BK,"wB");buildPanel("pC",CK,"wC");buildHead();
+compute();buildScope();renderTug();renderScope();renderOrder();renderReel();renderCompare();renderReg();renderFacts();renderFormulaOut();updateOutputs();
+
+const tip=$("tip");
+function showTip(c){
+  const n=D[+c.dataset.i],r=c.getBoundingClientRect(),w=$("scope").getBoundingClientRect();
+  tip.innerHTML="<b>"+esc(n.n)+"</b>Climate risk "+Math.round(n.A)+", hardship "+Math.round(n.B)+"<br>Funding order: "+n.pos;
+  tip.style.left=(r.left-w.left+r.width/2)+"px";tip.style.top=(r.top-w.top)+"px";tip.hidden=false;
+}
+$("scopeSvg").addEventListener("mouseover",e=>{const c=e.target.closest(".dot");if(c)showTip(c);});
+$("scopeSvg").addEventListener("mouseout",e=>{if(e.target.closest(".dot"))tip.hidden=true;});
+$("scopeSvg").addEventListener("click",e=>{const c=e.target.closest(".dot");if(c){tip.hidden=true;openDetail(+c.dataset.i);}});
+const hl=(e,on)=>{const li=e.target.closest("li");if(!li)return;const n=D.find(x=>x.n===li.dataset.n);if(n)n.dot.classList.toggle("hl",on);};
+$("tugList").addEventListener("mouseover",e=>hl(e,true));
+$("tugList").addEventListener("mouseout",e=>hl(e,false));
+if("IntersectionObserver" in window&&!RM){
+  $("reel").classList.add("pre");
+  const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){const r=$("reel");r.classList.add("play");r.classList.remove("pre");setTimeout(()=>r.classList.remove("play"),2400);io.disconnect();}});},{threshold:.35});
+  io.observe($("reel"));
+}
+
+const TYPES={budget:"City funding",jea:"JEA funding",hearing:"Hearing or meeting",milestone:"70% sign-up",data:"Data release"};
+const FEED=[
+ {t:"jea",h:"JEA Board approved $12M capital reallocation for priority septic zones",sample:1},
+ {t:"hearing",h:"City Council hearing scheduled for Duval District 4",sample:1},
+ {d:"2025-11-10",t:"milestone",h:"Riverview passes the 70% owner approval requirement",x:"The largest project to date moves into the design phase.",s:"JEA program page",u:"https://www.jea.com/In_Our_Community/Construction_Projects/Septic_Tank_Phase_Out"},
+ {d:"2024-12",t:"budget",h:"Rising costs leave the program about $80 million short",x:"Reports at the time tied the shortfall to higher construction costs in the current project cycle.",s:"News coverage, December 2024"},
+ {d:"2024-08-08",t:"hearing",h:"Second Riverview public kick-off meeting",x:"Hosted by Council Members Reggie Gaffney Jr. and Ju'Coby Pittman, the city and JEA. A first meeting was held February 15, 2024.",s:"JEA Riverview page",u:"https://www.jea.com/riverview"},
+ {d:"2024-06-13",t:"milestone",h:"Riverview sits at 22% of the 70% requirement",x:"Reported at a community advisory committee meeting as JEA outreach continued.",s:"City advisory committee summary",u:"https://www.jacksonville.gov/getattachment/Departments/Neighborhoods/Neighborhood-Services-Office/Citizen-Planning-Advisory-Committees-(CPACs)/CPAC-District-5-Northwest/13-June-24-Mtg-Summary-Final.pdf.aspx?lang=en-US"},
+ {d:"2023-07",t:"budget",h:"City moves to put more money into the phase-out program",s:"News coverage listed on JEA's program page",u:"https://www.jea.com/In_Our_Community/Construction_Projects/Septic_Tank_Phase_Out"},
+ {d:"2022-05-23",t:"milestone",h:"Christobel reaches the 70% threshold",x:"The project can move forward.",s:"JEA Christobel page",u:"https://jea.com/christobel"},
+ {d:"2021-05-27",t:"hearing",h:"Beverly Hills West pre-construction kick-off meeting",x:"Held with Council Member Pittman, the city and JEA.",s:"JEA Beverly Hills page",u:"https://www.jea.com/beverlyhills"},
+ {d:"2021-02",t:"budget",h:"City announces additional funding for septic tank phase-out",s:"News coverage listed on JEA's program page",u:"https://www.jea.com/In_Our_Community/Construction_Projects/Septic_Tank_Phase_Out"},
+ {d:"2016-08",t:"hearing",h:"City Council moves ahead with the septic tank program",s:"News coverage listed on JEA's program page",u:"https://www.jea.com/In_Our_Community/Construction_Projects/Septic_Tank_Phase_Out"}
+];
+FEED.sort((a,b)=>((a.d?1:0)-(b.d?1:0))||String(b.d||"").localeCompare(String(a.d||"")));
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fdate(d){if(!d) return "Date to come";const p=d.split("-");return p.length===3?MON[+p[1]-1]+" "+(+p[2])+", "+p[0]:MON[+p[1]-1]+" "+p[0];}
+let FF="all";
+function feedItem(f){
+  return `<li class="fi${f.sample?" sample":""}"><time class="fd"${f.d?` datetime="${f.d}"`:""}>${fdate(f.d)}</time><div class="fb"><div class="fh"><span class="ft t-${f.t}">${TYPES[f.t]}</span>${f.sample?'<span class="ft smp">Sample</span>':""}</div><h3>${esc(f.h)}</h3>${f.x?`<p>${esc(f.x)}</p>`:""}${f.s?`<p class="fs">Source: ${f.u?`<a href="${f.u}" target="_blank" rel="noopener">${esc(f.s)}</a>`:esc(f.s)}</p>`:""}</div></li>`;
+}
+function renderFeed(){
+  const list=FEED.filter(f=>FF==="all"||f.t===FF);
+  $("feed").innerHTML=list.length?list.map(feedItem).join(""):'<li class="fi"><div class="fb"><p>No updates of this type yet.</p></div></li>';
+  document.querySelectorAll(".fpill").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.f===FF)));
+}
+function renderTicker(){
+  const items=FEED.filter(f=>!f.sample).slice(0,6);
+  const belt=$("tkBelt"),view=belt.parentElement;
+  const one=items.map(f=>`<a class="tk-i" href="#updates"><b class="tk-t">${fdate(f.d)}</b>${esc(f.h)}</a>`).join("");
+  const build=k=>{const g=`<span class="tk-set">${one.repeat(k)}</span>`;belt.innerHTML=g+g.replace('class="tk-set"','class="tk-set" aria-hidden="true"').replace(/<a /g,'<a tabindex="-1" ');};
+  build(1);
+  const w=belt.firstChild.getBoundingClientRect().width,vw=view.clientWidth;
+  if(w>0&&vw>w) build(Math.ceil(vw/w));
+  const half=belt.scrollWidth/2;
+  belt.style.animationDuration=Math.max(20,Math.round((half||1200)/55))+"s";
+}
+document.querySelectorAll(".fpill").forEach(b=>b.addEventListener("click",()=>{FF=b.dataset.f;renderFeed();}));
+$("tkPause").addEventListener("click",e=>{const b=e.currentTarget,on=document.querySelector(".ticker").classList.toggle("paused");b.textContent=on?"Play":"Pause";b.setAttribute("aria-label",on?"Play the updates ticker":"Pause the updates ticker");});
+renderFeed();renderTicker();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(renderTicker);
+let tkT;window.addEventListener("resize",()=>{clearTimeout(tkT);tkT=setTimeout(renderTicker,200);});
+
+window.__tw={D,S,compute,get seq(){return SEQ;},get dv(){return DVN;}};
+})();
+</script>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+const usd=n=>"$"+fmt(n);
+const slug=t=>t.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const PTS={"Eggleston Heights": [57.7, 17.91], "St. Nicholas": [58.87, 16.46], "Emerson": [56.56, 18.2], "Julington Creek": [65.82, 8.24], "Champion Forest": [51.43, 18.85], "Holly Oaks": [54.82, 14.36], "Oak Lawn": [56.63, 12.4], "Lakeshore": [52.64, 16.12], "Sans Pereil": [54.58, 14.0], "Atlantic Highlands": [51.05, 16.96], "Empire Point": [53.95, 13.77], "Mill Creek": [53.24, 14.36], "Cedar River": [53.49, 14.04], "Westfield": [53.0, 12.13], "Kinard": [57.96, 7.15], "Julington Hills": [58.32, 5.7], "Lone Star Park": [48.33, 14.13], "Spring Glen": [47.92, 14.35], "Point La Vista": [51.23, 10.79], "Inwood Terrace": [47.87, 13.64], "Northlake": [52.7, 8.48], "Hood Landing II": [57.46, 3.39], "Beauclerc Gardens": [55.89, 3.61], "Clifton": [45.19, 13.01], "Ortega": [47.7, 10.03], "Southside Estates": [37.94, 17.11], "The Cape": [44.64, 7.98], "Oakhaven": [39.7, 12.7], "Odessa": [36.0, 14.34], "Pablo Point": [48.1, 0.65], "Mt. Pleasant": [40.48, 5.77]};
+const AREAS=[...window.__tw.D].sort((a,b)=>a.l-b.l).map(n=>({id:slug(n.n),name:n.n,rank:n.l,region:n.r,parcels:n.p,score:n.o,near:n.u,pts:PTS[n.n]||[0,0],count:0,pct:0}));
+const TOP4=[
+{n:"Biltmore C",units:358,near:266,score:86.04,unit:62303,cost:14578971,water:4375509,basis:"Bids or actuals of a completed project"},
+{n:"Beverly Hills",units:749,near:314,score:80.28,unit:68215,cost:44339828,water:0,basis:"Bids or actuals of a completed project"},
+{n:"Christobel",units:511,near:123,score:80.48,unit:71227,cost:36397025,water:4405595,basis:"Engineer\u2019s 90% design opinion of probable cost, May 2025"},
+{n:"Riverview",units:2433,near:840,score:77.2,unit:60452,cost:147079000,water:13961771,basis:"Updated vacuum sewer costs in 2027 dollars, part vacuum and part gravity, May 2025"}];
+
+/* theme, tabs, cross-tab links */
+$("theme").addEventListener("click",()=>{const r=document.documentElement,cur=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");r.dataset.theme=cur==="dark"?"light":"dark";});
+function showTab(t){
+  document.querySelectorAll(".tabbtn").forEach(x=>{const on=x.dataset.t===t;x.setAttribute("aria-selected",on);$("p-"+x.dataset.t).hidden=!on;});
+  $("secnav").hidden=t!=="lab";$("secnav-off").hidden=t!=="off";
+}
+document.querySelectorAll(".tabbtn").forEach(b=>b.addEventListener("click",()=>{showTab(b.dataset.t);window.scrollTo(0,0);}));
+function goHash(h,smooth){
+  const el=h.length>1&&document.getElementById(h.slice(1));if(!el) return false;
+  const p=el.closest(".tabp");if(p&&p.hidden) showTab(p.id==="p-off"?"off":"lab");
+  el.scrollIntoView({behavior:smooth?"smooth":"auto"});return true;
+}
+document.addEventListener("click",e=>{
+  const a=e.target.closest('a[href^="#"]');if(!a) return;
+  const h=a.getAttribute("href"),el=h.length>1&&document.getElementById(h.slice(1));
+  if(el&&el.closest(".tabp")&&el.closest(".tabp").hidden){e.preventDefault();goHash(h,true);history.replaceState(null,"",h);}
+});
+window.addEventListener("load",()=>{if(location.hash) goHash(location.hash,false);});
+
+/* costs: top four + per-home breakdown */
+$("top4Body").innerHTML=TOP4.map(d=>`<tr><td><strong>${esc(d.n)}</strong><small>${esc(d.basis)}</small></td><td class="num">${fmt(d.units)}</td><td class="num">${fmt(d.near)}</td><td class="num">${d.score.toFixed(2)}</td><td class="num">${usd(d.unit)}</td><td><div class="cons"><div class="bar" role="img" aria-label="${usd(d.cost)}"><i class="ba" style="width:${(d.cost/147079000*100).toFixed(1)}%"></i></div><span class="num">${usd(d.cost)}</span></div></td><td class="num">${usd(d.water)}</td></tr>`).join("");
+(function(){
+  const SW=[["Sewer lines, pump station, restoration and tank abandonment",56106,"var(--ink)"],["Land for the pump station",200,"var(--b)"],["Treatment plant capacity fee",4091,"var(--a)"],["Project management, engineering and inspection",11221,"var(--dv)"]];
+  const WT=[["Water lines, hydrants and services",9848,"var(--ink)"],["Water meter capacity fee",936,"var(--a)"],["Project management, engineering and inspection",1970,"var(--dv)"]];
+  const k=720/71618;let h='',x=20;
+  const row=(arr,y,label)=>{let xx=20;h+=`<text x="20" y="${y-8}" class="dtx">${label}</text>`;arr.forEach(r=>{const w=Math.max(2,r[1]*k);h+=`<rect x="${xx.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="34" fill="${r[2]}" stroke="var(--ink)" stroke-width="2"><title>${esc(r[0])}: ${usd(r[1])}</title></rect>`;xx+=w;});return xx;};
+  row(SW,28,"Sewer: $71,618 per home");
+  const e=row(WT,100,"Water, only where there is no public water: $12,754 per home");
+  $("costSvg").innerHTML=h;
+  $("costLeg").innerHTML=SW.concat(WT).map((r,i)=>`<li><span class="sw" style="background:${r[2]}"></span><span>${esc(r[0])}: <strong>${usd(r[1])}</strong>${i<4?" ("+(r[1]/71618*100).toFixed(1)+"%)":""}</span></li>`).join("");
+})();
+
+/* Riverview sign-up chart */
+(function(){
+  const X=m=>80+m/17*560,Y=p=>230-p/100*200;let h='';
+  [0,25,50,75,100].forEach(p=>{h+=`<line x1="80" y1="${Y(p)}" x2="640" y2="${Y(p)}" stroke="var(--rule)"/><text x="70" y="${Y(p)+4}" text-anchor="end" class="dtm">${p}%</text>`;});
+  h+=`<rect x="80" y="${Y(100)}" width="560" height="200" fill="none" stroke="var(--ink)" stroke-width="2"/>`;
+  h+=`<line x1="80" y1="${Y(70)}" x2="640" y2="${Y(70)}" stroke="var(--b)" stroke-width="3" stroke-dasharray="8 5"/><text x="636" y="${Y(70)-8}" text-anchor="end" class="dtx" fill="var(--b)">70% required</text>`;
+  h+=`<line x1="${X(0)}" y1="${Y(22)}" x2="${X(17)}" y2="${Y(70)}" stroke="var(--ink)" stroke-width="2.5" stroke-dasharray="3 6"/>`;
+  h+=`<circle cx="${X(0)}" cy="${Y(22)}" r="9" fill="var(--a)" stroke="var(--ink)" stroke-width="2.5"/><text x="${X(0)+16}" y="${Y(22)+5}" class="dtx">22% in June 2024</text>`;
+  h+=`<circle cx="${X(17)}" cy="${Y(70)}" r="9" fill="var(--dv)" stroke="var(--ink)" stroke-width="2.5"/><text x="${X(17)-16}" y="${Y(70)+26}" text-anchor="end" class="dtx">Passed 70% in November 2025</text>`;
+  h+=`<text x="${X(0)}" y="256" text-anchor="middle" class="dtm">Jun 2024</text><text x="${X(17)}" y="256" text-anchor="middle" class="dtm">Nov 2025</text>`;
+  $("rvSvg").innerHTML=h;
+})();
+
+/* city matrix */
+const bar=d=>`<svg class="sb" viewBox="0 0 100 12" role="img" aria-label="${d.pts[0]} of 70 environment, health and welfare points and ${d.pts[1]} of 30 community points"><rect width="100" height="12" class="sbt"/><rect width="${d.pts[0]}" height="12" class="sba"/><rect x="${d.pts[0]}" width="${d.pts[1]}" height="12" class="sbc"/></svg>`;
+function matrix(){
+  const q=$("ms").value.trim().toLowerCase(),f=$("mf").value;
+  const rows=AREAS.filter(d=>(d.name.toLowerCase().includes(q)||d.region.toLowerCase().includes(q))&&(f==="all"||(f==="1"?d.rank<=10:f==="2"?d.rank>10&&d.rank<=20:d.rank>20)));
+  $("mb").innerHTML=rows.map(d=>`<tr><td class="rk num">${d.rank}</td><td><button class="link" type="button" data-id="${d.id}">${esc(d.name)}</button></td><td>${esc(d.region)}</td><td class="num">${fmt(d.parcels)}</td><td class="num">${d.score.toFixed(1)}</td><td>${bar(d)}</td><td class="num">${fmt(d.near)}</td><td><div class="cons"><div class="bar" role="img" aria-label="${d.pct}% signed up"><i class="ba" style="width:${Math.min(100,d.pct)}%"></i></div><span class="num">${d.pct}%</span></div></td></tr>`).join("");
+  $("mn").textContent=rows.length?`Showing ${rows.length} of ${AREAS.length} neighborhoods. Source: city matrix, June 2026.`:"No neighborhoods match. Clear the search or choose All 31.";
+}
+$("ms").addEventListener("input",matrix);$("mf").addEventListener("change",matrix);
+$("mb").addEventListener("click",e=>{const b=e.target.closest("button.link");if(!b)return;$("area").value=b.dataset.id;consent();$("consent").scrollIntoView({behavior:"smooth",block:"center"});$("area").focus({preventScroll:true});});
+
+/* sign-up register */
+function opts(keep){
+  $("area").innerHTML=AREAS.map(d=>`<option value="${d.id}">${esc(d.name)} (${d.pct}% signed up)</option>`).join("");
+  if(keep) $("area").value=keep; consent();
+}
+function consent(){
+  const d=AREAS.find(x=>x.id===$("area").value)||AREAS[0],need=Math.ceil(d.parcels*.7),met=d.pct>=70;
+  $("cpct").textContent=d.pct+"%";$("cbar").style.width=Math.min(d.pct,100)+"%";$("meter").classList.toggle("met",met);
+  $("ctarget").textContent=`Target ${fmt(need)} of ${fmt(d.parcels)}`;
+  $("cnote").textContent=met?"Threshold met.":`${fmt(d.count)} signed up. ${fmt(Math.max(0,need-d.count))} more needed to reach 70%.`;
+}
+$("area").addEventListener("change",consent);
+const _m=((document.querySelector('meta[name="septic-api"]')||{}).content||"").trim();
+const API=_m==="/"?location.origin:_m.replace(/\/$/,"");
+async function apiLoad(){
+  const r=await fetch(API+"/api/signups");if(!r.ok) throw 0;
+  const j=await r.json();
+  AREAS.forEach(d=>{d.count=(j.counts||{})[d.id]||0;d.pct=Math.round(d.count/d.parcels*1000)/10;});
+  opts($("area").value);matrix();
+}
+let DB=null,UID=null,MODE="demo";
+const hash=async t=>{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].slice(0,10).map(x=>x.toString(16).padStart(2,"0")).join("");};
+function mode(m,msg){MODE=m;$("cmode").textContent=msg;$("cform").querySelectorAll("input,button").forEach(x=>x.disabled=(m==="locked"));}
+$("cform").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const d=AREAS.find(x=>x.id===$("area").value); if(!d) return;
+  const n=$("rn").value.trim(),a=$("ra").value.trim(),st=$("cs");
+  if(MODE==="server"){
+    try{
+      const r=await fetch(API+"/api/signups",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({area:d.id,address:a,owner:true})});
+      if(r.status===409){st.textContent=`That address is already signed up for ${d.name}. Each property counts once.`;return;}
+      if(r.status===429){st.textContent="Too many sign-ups from this connection. Please try again later.";return;}
+      if(!r.ok) throw 0;
+      st.textContent=`Saved. Your sign-up for ${d.name} is counted. Your name and address were not stored.`;
+      $("cform").reset();await apiLoad();
+    }catch(err){st.textContent="Could not reach the sign-up server. Please try again.";}
+    return;
+  }
+  if(MODE==="db"){
+    try{
+      const key=d.id+"__"+await hash(a.toLowerCase().replace(/[^a-z0-9]/g,""));
+      const ex=await DB.doc("consents/"+key).get();
+      if(ex.exists){st.textContent=`That address is already signed up for ${d.name}. Each property counts once.`;return;}
+      await DB.doc("data/users/"+UID+"/"+key).set({areaId:d.id,name:n,address:a,at:Date.now()});
+      await DB.doc("consents/"+key).set({areaId:d.id,at:Date.now()});
+      st.textContent=`Saved. Your sign-up for ${d.name} is counted. Your name and address are visible only to you.`;
+      $("cform").reset();
+    }catch(err){st.textContent=err&&err.code==="invalid_argument"?"You don\u2019t have permission to save sign-ups on this page.":"Could not save. Check your connection and try again.";}
+    return;
+  }
+  d.count+=1;d.pct=Math.round(d.count/d.parcels*1000)/10;opts(d.id);matrix();
+  st.textContent=`Demo only: counted one sign-up for ${a} in ${d.name}, now at ${d.pct}%. Nothing was saved.`;
+  $("cform").reset();
+});
+(async()=>{
+  if(API){
+    try{await apiLoad();mode("server","Sign-ups are saved on the project server. Your name and address are not stored, only a one-way fingerprint of the address so each property counts once.");setInterval(()=>apiLoad().catch(()=>{}),60000);}
+    catch(e){mode("demo","The sign-up server could not be reached, so nothing will be saved right now.");}
+    return;
+  }
+  try{
+    if(typeof claude==="undefined") throw 0;
+    DB=await claude.use("db");const u=await claude.use("user");
+    if(!DB||!u) throw 0;
+    UID=await u.id();const can=await u.can("data.write");
+    if(!UID) mode("locked","Sign in to claude.ai to register. The counts shown are live from the shared database.");
+    else if(can===false) mode("locked","You have view-only access, so you can see counts but not register.");
+    else mode("db","Saved to the shared database. Only an anonymous count is shared. Your name and address stay private to you.");
+    DB.collection("consents").onSnapshot(sn=>{
+      const m={};sn.docs.forEach(x=>{const k=(x.data()||{}).areaId;m[k]=(m[k]||0)+1;});
+      AREAS.forEach(d=>{d.count=m[d.id]||0;d.pct=Math.round(d.count/d.parcels*1000)/10;});
+      opts($("area").value);matrix();
+    },()=>{});
+  }catch(e){mode("demo","Demo only. No database is connected to this site yet, so nothing is saved and the count resets when you reload.");}
+})();
+
+/* septic diagram */
+function dia(){
+  const r=+$("rainDia").value,y=270-r*1.4,flooded=y<=166,rising=y<=200&&!flooded;
+  $("wtRect").setAttribute("y",y);$("wtRect").setAttribute("height",340-y);
+  $("wtLine").setAttribute("y1",y);$("wtLine").setAttribute("y2",y);$("wtLbl").setAttribute("y",y-8);
+  const n=Math.ceil(r/20);[...$("drops").children].forEach((l,i)=>l.style.opacity=i<n?1:0);
+  $("dfield").style.stroke=flooded?"var(--b)":"";$("dfield").style.strokeWidth=flooded?"4":"";
+  $("wtMsg").textContent=flooded?"Drainfield under water":"";
+  $("diaMsg").textContent=flooded?"The drainfield is under water. Wastewater cannot soak in, so it can back up toward the house or spill into ditches and waterways."
+    :rising?"The water table is rising. There is less dry soil left to clean the wastewater."
+    :"Dry soil under the drainfield cleans wastewater before it reaches groundwater.";
+}
+$("rainDia").addEventListener("input",dia);dia();
+
+/* live rainfall + soil moisture (Open-Meteo, keyless). Blocked on hosts that forbid outside requests. */
+const WX="https://api.open-meteo.com/v1/forecast?latitude=30.33&longitude=-81.66&past_days=3&forecast_days=1&hourly=precipitation,soil_moisture_0_to_7cm&precipitation_unit=inch&timezone=GMT";
+async function loadWx(){
+  try{
+    const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),8000);
+    const r=await fetch(WX,{signal:ctl.signal});clearTimeout(t);
+    if(!r.ok) throw 0;
+    const h=(await r.json()).hourly,now=Date.now();
+    let idx=-1;h.time.forEach((x,i)=>{if(Date.parse(x+"Z")<=now) idx=i;});
+    if(idx<0) throw 0;
+    let rain=0;for(let i=Math.max(0,idx-71);i<=idx;i++) rain+=h.precipitation[i]||0;
+    let soil=null;for(let i=idx;i>=0&&soil===null;i--) soil=h.soil_moisture_0_to_7cm[i];
+    const sat=soil===null?0:Math.min(1,soil/0.45);
+    const risk=Math.round(Math.min(1,rain/4)*50+sat*50);
+    $("g-rain").textContent=rain.toFixed(2)+" in";
+    $("g-rain-n").textContent=rain>=2?"Heavy. Ground likely saturated":rain>=0.75?"Moderate":"Light";
+    $("g-soil").textContent=soil===null?"\u2014":Math.round(soil*100)+"%";
+    $("g-soil-n").textContent=soil===null?"No reading":soil>=0.38?"Near saturated":soil>=0.25?"Moist":"Dry";
+    $("g-risk").textContent=(risk>=65?"High":risk>=35?"Moderate":"Low")+", "+risk+"%";
+    $("g-riskbar").style.width=risk+"%";
+    $("g-chip").className="chip a";$("g-chip").textContent="Live feed, fetched "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+  }catch(e){
+    $("g-chip").className="chip dv";$("g-chip").textContent="Feed unavailable";
+    ["g-rain-n","g-soil-n"].forEach(i=>$(i).textContent="No data");
+    $("g-note").textContent="This page could not reach the weather service. Some hosts, including claude.ai, block outside requests. Open the file from your own site to see live readings.";
+  }
+}
+loadWx();setInterval(loadWx,15*60*1000);
+matrix();opts();
+})();
+</script>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+
+const DEMO_CSV = `name,properties,floodplain_pct,wave_pct,elevation_ft,flood_factor,river_km,svi,qct_pct,poverty_pct,health_pct,household_size,vulnerable_pct,failing_score,cost_per_property
+"Arlington River",420,85,15,4.2,7.5,0.4,0.88,80,32,78,2.6,48,55,71618
+"Springfield North",610,30,0,12.5,3.1,2.1,0.92,95,38,85,2.8,52,60,71618
+"Mandarin Point",530,90,45,2.1,8.9,0.2,0.35,15,12,30,2.3,31,45,71618
+"Westside Estates",890,40,0,10.0,4.0,3.5,0.81,70,25,72,2.7,46,48,71618
+"Riverside Reach",740,75,30,3.8,8.1,0.5,0.76,60,22,65,2.4,38,50,71618
+"Northside Woods",310,20,0,14.0,2.5,4.0,0.84,85,30,80,2.9,50,52,71618
+"Intracoastal West",480,95,80,1.5,9.2,0.1,0.28,10,8,25,2.2,29,42,71618
+"Avenues End",390,50,5,8.2,5.0,1.8,0.68,50,18,60,2.5,40,46,71618`;
+
+const TEMPLATE_CSV = `name,properties,floodplain_pct,wave_pct,elevation_ft,flood_factor,river_km,svi,qct_pct,poverty_pct,health_pct,household_size,vulnerable_pct,failing_score,cost_per_property
+"Neighborhood A",500,50,10,8.0,5.0,1.5,0.50,50,20,50,2.5,40,50,71618
+"Neighborhood B",300,80,40,3.0,8.0,0.5,0.80,80,35,75,2.4,45,55,71618`;
+
+const LAB_AK=[["floodplain_pct","100-yr floodplain %"],["wave_pct","Coastal wave zone %"],["elevation_ft","Average elevation (ft)"],["flood_factor","First Street Flood Factor"],["river_km","River distance (km)"]];
+const LAB_BK=[["svi","CDC SVI (0-1)"],["qct_pct","HUD QCT %"],["poverty_pct","Poverty rate %"],["health_pct","Health burden %"]];
+const LAB_CK=[["properties","Parcel count"],["household_size","Household size"],["failing_score","Failing systems score"],["cost_per_property","Cost per property"],["vulnerable_pct","Vulnerable persons %"]];
+
+function buildLabInputs(){
+  $("labWA").innerHTML=LAB_AK.map((k,i)=>`<div class="lab-f"><label for="lwa_${i}">${esc(k[1])}</label><input type="number" id="lwa_${i}" value="${[25,20,15,25,15][i]}" min="0" max="100"></div>`).join("");
+  $("labWB").innerHTML=LAB_BK.map((k,i)=>`<div class="lab-f"><label for="lwb_${i}">${esc(k[1])}</label><input type="number" id="lwb_${i}" value="${[40,25,20,15][i]}" min="0" max="100"></div>`).join("");
+  $("labWC").innerHTML=LAB_CK.map((k,i)=>`<div class="lab-f"><label for="lwc_${i}">${esc(k[1])}</label><input type="number" id="lwc_${i}" value="${[25,20,20,20,15][i]}" min="0" max="100"></div>`).join("");
+}
+buildLabInputs();
+
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/);
+  if(lines.length<2) throw new Error("Dataset must include a header row and at least one data row.");
+  const parseRow=row=>{
+    const res=[];let cur="",inQ=false;
+    for(let i=0;i<row.length;i++){
+      const c=row[i];
+      if(c==='"'){inQ=!inQ;}
+      else if((c===','||c==='\t')&&!inQ){res.push(cur.trim());cur="";}
+      else{cur+=c;}
+    }
+    res.push(cur.trim());
+    return res.map(s=>s.replace(/^"|"$/g,""));
+  };
+  const headers=parseRow(lines[0]).map(h=>h.replace(/^\uFEFF/,"").trim().toLowerCase().replace(/[\s-]+/g,"_"));
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim()) continue;
+    const vals=parseRow(lines[i]);
+    const obj={};
+    headers.forEach((h,j)=>{obj[h]=vals[j]!==undefined?vals[j]:"";});
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function msg(text,type="ok",more=[]){
+  $("labMsg").innerHTML=[[text,type],...more].map(([t,y])=>`<li class="${y}">${esc(t)}</li>`).join("");
+}
+
+let SRC="Demo county (made-up data)";
+function load(text,src){$("labText").value=text;SRC=src;runLab(true);}
+$("labTemplate").addEventListener("click",()=>{$("labText").value=TEMPLATE_CSV;SRC="Your data";msg("Template loaded below. Replace the example rows with yours, then press Run the framework.");});
+$("labDemo").addEventListener("click",()=>load(DEMO_CSV,"Demo county (made-up data)"));
+$("labFile").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onerror=()=>{$("labOut").hidden=true;msg("That file could not be read.","err");};
+  r.onload=ev=>{load(String(ev.target.result),f.name);e.target.value="";};
+  r.readAsText(f);
+});
+$("labText").addEventListener("input",()=>{SRC="Pasted data";});
+
+function eff(ws){const s=ws.reduce((x,y)=>x+y,0)||1;return ws.map(x=>x/s);}
+
+function runLab(scroll){
+  try{
+    const raw=parseCSV($("labText").value);
+    if(!raw.length) throw new Error("No valid rows found in data.");
+    const WARN=[],heads=Object.keys(raw[0]),has=(...k)=>k.some(x=>heads.includes(x));
+    if(!has("properties","parcels")) throw new Error("Add a column named properties (or parcels). It is required.");
+    const presA=[has("floodplain_pct","floodplain"),has("wave_pct","wave_hazard"),has("elevation_ft","elevation"),has("flood_factor","fsf"),has("river_km","river_distance")];
+    const presB=[has("svi"),has("qct_pct","qct"),has("poverty_pct","poverty"),has("health_pct","health")];
+    const presC=[true,has("household_size"),has("failing_score","failures"),has("cost_per_property"),has("vulnerable_pct")];
+    const miss=[...LAB_AK.filter((_,i)=>!presA[i]),...LAB_BK.filter((_,i)=>!presB[i]),...LAB_CK.filter((_,i)=>!presC[i])].map(k=>k[0]);
+    if(miss.length) WARN.push("Columns not found, so their weights were set to zero: "+miss.join(", ")+".");
+    if(!presA.some(Boolean)) WARN.push("No climate columns found, so every area scores 0 on climate risk and the lists are not meaningful. Add at least one climate column.");
+    if(!presB.some(Boolean)) WARN.push("No hardship columns found, so every area scores 0 on hardship and the lists are not meaningful. Add at least one hardship column.");
+    if(!has("name","neighborhood")) WARN.push("No name column found, so areas are numbered.");
+    if(!has("cost_per_property")) WARN.push("No cost_per_property column, so the city standard of $71,618 per property was used for cost and timing.");
+    let bad=0;[["properties","parcels"],["floodplain_pct","floodplain"],["wave_pct","wave_hazard"],["elevation_ft","elevation"],["flood_factor","fsf"],["river_km","river_distance"],["svi"],["qct_pct","qct"],["poverty_pct","poverty"],["health_pct","health"],["household_size"],["failing_score","failures"],["cost_per_property"],["vulnerable_pct"]].forEach(g=>{const k=g.find(x=>heads.includes(x));if(k) raw.forEach(r=>{if(!isFinite(parseFloat(r[k]))) bad++;});});
+    if(bad) WARN.push(bad+" blank or non-numeric value"+(bad>1?"s were":" was")+" replaced with a neutral default. Check those rows.");
+    
+    const wA=eff(LAB_AK.map((_,i)=>presA[i]?+($("lwa_"+i).value||0):0));
+    const wB=eff(LAB_BK.map((_,i)=>presB[i]?+($("lwb_"+i).value||0):0));
+    const wC=eff(LAB_CK.map((_,i)=>presC[i]?+($("lwc_"+i).value||0):0));
+    
+    const waveMax=+($("labWave").value||25);
+    const riverZero=+($("labRiver").value||5);
+    const povMax=+($("labPov").value||40);
+    const topShare=+($("labShare").value||25);
+    const startTrack=$("labStart").value;
+    const budget=+($("labBudget").value||25);
+
+    const parsed=raw.map((r,idx)=>{
+      const name=r.name||r.neighborhood||`Area ${idx+1}`;
+      const properties=Math.max(1,parseFloat(r.properties||r.parcels)||100);
+      const fp=Math.min(100,Math.max(0,parseFloat(r.floodplain_pct||r.floodplain)||50));
+      const wp=Math.min(100,Math.max(0,parseFloat(r.wave_pct||r.wave_hazard||0))/waveMax*100);
+      const ef=Math.max(0,parseFloat(r.elevation_ft||r.elevation||10));
+      const el=Math.max(0,100-(ef/20)*100);
+      const ff=Math.min(10,Math.max(1,parseFloat(r.flood_factor||r.fsf||5)))*10;
+      const rk=Math.max(0,Math.min(riverZero,parseFloat(r.river_km||r.river_distance||2)));
+      const rl=Math.max(0,100-(rk/riverZero)*100);
+
+      const svi=Math.min(1,Math.max(0,parseFloat(r.svi||0.5)))*100;
+      const qct=Math.min(100,Math.max(0,parseFloat(r.qct_pct||r.qct||50)));
+      const pov=Math.min(100,Math.max(0,parseFloat(r.poverty_pct||r.poverty||20))/povMax*100);
+      const hp=Math.min(100,Math.max(0,parseFloat(r.health_pct||r.health||50)));
+
+      const hs=Math.max(1,parseFloat(r.household_size||2.5));
+      const fs=Math.min(100,Math.max(0,parseFloat(r.failing_score||r.failures||50)));
+      const cpp=Math.max(1000,parseFloat(r.cost_per_property||71618));
+      const vp=Math.min(100,Math.max(0,parseFloat(r.vulnerable_pct||40)));
+
+      return {
+        name, properties, hs, cpp,
+        a:[fp,wp,el,ff,rl],
+        b:[svi,qct,pov,hp],
+        craw:[properties, hs, fs, cpp, vp]
+      };
+    });
+
+    parsed.forEach(n=>{
+      n.A=n.a.reduce((s,v,i)=>s+v*wA[i],0);
+      n.B=n.b.reduce((s,v,i)=>s+v*wB[i],0);
+      n.pop=n.properties*n.hs;
+      n.cost=n.properties*n.cpp/1e6;
+    });
+
+    const norm=(arr,inv)=>{
+      const vals=arr,lo=Math.min(...vals),hi=Math.max(...vals);
+      return vals.map(x=>hi===lo?50:(inv?hi-x:x-lo)/(hi-lo)*100);
+    };
+    const cProps=norm(parsed.map(n=>n.properties));
+    const cPop=norm(parsed.map(n=>n.pop));
+    const cFail=norm(parsed.map(n=>n.craw[2]));
+    const cCpp=norm(parsed.map(n=>n.cpp),true);
+    const cVuln=norm(parsed.map(n=>n.craw[4]));
+
+    parsed.forEach((n,i)=>{
+      n.cs=[cProps[i],cPop[i],cFail[i],cCpp[i],cVuln[i]];
+      n.cis=n.cs.reduce((s,v,j)=>s+v*wC[j],0);
+    });
+
+    [...parsed].sort((x,y)=>y.A-x.A).forEach((n,i)=>n.rA=i+1);
+    [...parsed].sort((x,y)=>y.B-x.B).forEach((n,i)=>n.rB=i+1);
+
+    const topCount=Math.max(1,Math.round(parsed.length*(topShare/100)));
+    parsed.forEach(n=>{
+      n.dv=n.rA<=topCount&&n.rB<=topCount;
+      n.track=n.dv?"dv":(n.A>n.B?"a":"b");
+    });
+
+    const dv=parsed.filter(n=>n.dv).sort((x,y)=>(y.A+y.B)-(x.A+x.B));
+    const qa=parsed.filter(n=>n.track==="a").sort((x,y)=>y.A-x.A);
+    const qb=parsed.filter(n=>n.track==="b").sort((x,y)=>y.B-x.B);
+    const seq=[...dv]; let turn=startTrack;
+    while(qa.length||qb.length){
+      let q=turn==="a"?qa:qb; if(!q.length) q=turn==="a"?qb:qa;
+      seq.push(q.shift()); turn=turn==="a"?"b":"a";
+    }
+
+    let cum=0;
+    seq.forEach((n,i)=>{n.pos=i+1;cum+=n.cost;n.cum=cum;n.year=Math.max(1,Math.ceil(cum/budget-1e-9));});
+
+    $("labOut").hidden=false;
+    $("labSum").textContent=`${SRC}: ${parsed.length} areas analyzed. ${dv.length} identified as double-vulnerability zones. Total estimated program cost: $${cum.toFixed(2)}M.`;
+
+    $("labHead").innerHTML=`<tr><th class="num">Order</th><th>Area</th><th>List</th><th class="num">Properties</th><th class="num">Climate</th><th class="num">Hardship</th><th class="num">Benefit (CIS)</th><th class="num">Finished</th></tr>`;
+    $("labBody").innerHTML=seq.map(n=>`<tr><td class="num">${n.pos}</td><td><b>${esc(n.name)}</b></td><td>${n.track==="dv"?"Double Vulnerability":n.track==="a"?"Climate Risk":"Hardship"}</td><td class="num">${fmt(n.properties)}</td><td class="num">${Math.round(n.A)}</td><td class="num">${Math.round(n.B)}</td><td class="num">${Math.round(n.cis)}</td><td class="num">Year ${n.year}</td></tr>`).join("");
+
+    const svg=$("labPlot"); svg.innerHTML="";
+    const W=520,H=520,l=50,r=20,t=20,b=50,pw=W-l-r,ph=H-t-b;
+    const X=v=>l+v/100*pw, Y=v=>t+(100-v)/100*ph;
+    
+    const ns="http://www.w3.org/2000/svg";
+    const mk=(tag,attrs,parent)=> {const e=document.createElementNS(ns,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;};
+    mk("rect",{x:l,y:t,width:pw,height:ph,fill:"rgba(3,14,38,0.2)"},svg);
+    for(let v=0;v<=100;v+=25){
+      mk("line",{x1:X(v),y1:t,x2:X(v),y2:t+ph,stroke:"var(--rule)","stroke-width":"1"},svg);
+      mk("line",{x1:l,y1:Y(v),x2:l+pw,y2:Y(v),stroke:"var(--rule)","stroke-width":"1"},svg);
+      mk("text",{x:X(v),y:t+ph+18,"text-anchor":"middle",class:"t2"},svg,v);
+      mk("text",{x:l-8,y:Y(v)+4,"text-anchor":"end",class:"t2"},svg,v);
+    }
+    mk("text",{x:l+pw/2,y:H-10,"text-anchor":"middle",class:"ax2"},svg,"Climate Risk Score");
+    mk("text",{x:14,y:t+ph/2,"text-anchor":"middle",class:"ax2",transform:"rotate(-90 14 "+(t+ph/2)+")"},svg,"Hardship Score");
+
+    const maxP=Math.max(...parsed.map(n=>n.properties));
+    parsed.forEach(n=>{
+      const r_circ=Math.max(4,Math.sqrt(n.properties/maxP)*14);
+      const dot=mk("circle",{cx:X(n.A),cy:Y(n.B),r:r_circ,class:"dot2 "+n.track},svg);
+      mk("title",{},dot).textContent=`${n.name}: Climate ${Math.round(n.A)}, Hardship ${Math.round(n.B)}, Order ${n.pos}`;
+    });
+
+    const csvExport=["order,name,track,properties,climate_score,hardship_score,benefit_score,finished_year",
+      ...seq.map(n=>`${n.pos},"${n.name}",${n.track},${n.properties},${Math.round(n.A)},${Math.round(n.B)},${Math.round(n.cis)},${n.year}`)
+    ].join("\n");
+    $("labExport").value=csvExport;
+    msg(`${parsed.length} areas analyzed from ${SRC}.`,"ok",WARN.map(t=>[t,"warn"]));
+    if(scroll) $("labOut").scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(err){
+    $("labOut").hidden=true;msg("Error processing data: "+err.message,"err");
+  }
+}
+
+$("labRun").addEventListener("click",()=>runLab(true));
+$("labDuval").addEventListener("click",()=>load(TEMPLATE_CSV,"Two-row example"));
+$("labCopy").addEventListener("click",async()=>{
+  const t=$("labExport");let ok=true;
+  try{await navigator.clipboard.writeText(t.value);}catch(e){try{t.select();ok=document.execCommand("copy");}catch(e2){ok=false;}}
+  $("labCopied").textContent=ok?"Copied to clipboard!":"Select the text above and copy it.";
+  setTimeout(()=>$("labCopied").textContent="",2500);
+});
+$("labText").value=DEMO_CSV;runLab(false);
+})();
+</script>
+
+</body>
+</html>
